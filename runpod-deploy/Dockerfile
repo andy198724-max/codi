@@ -1,23 +1,16 @@
-FROM nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+FROM python:3.11-slim
 
-SHELL ["/bin/bash", "-c"]
-
-# Install Python 3.11 + pip
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3.11 python3.11-dev python3-pip curl git build-essential \
+    curl git build-essential \
     && rm -rf /var/lib/apt/lists/*
-
-# Set python3.11 as default
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1 \
-    && update-alternatives --install /usr/bin/python python /usr/bin/python3.11 1
 
 WORKDIR /codi-core
 
+# Install PyTorch 2.4.0 with CUDA 12.4 (single install, no duplication)
+RUN pip install --no-cache-dir torch==2.4.0 torchvision==0.19.0 --index-url https://download.pytorch.org/whl/cu124
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Install PyTorch with CUDA 12.4
-RUN pip install --no-cache-dir torch==2.4.0 torchvision==0.19.0 --index-url https://download.pytorch.org/whl/cu124
 
 COPY inference/ ./inference/
 COPY config/model_config.yaml ./config/model_config.yaml
