@@ -116,7 +116,7 @@
       "properties": {
         "codi.apiUrl": {
           "type": "string",
-          "default": "http://localhost:11435",
+          "default": "https://wgdlxekgnbcyfo-8000.proxy.runpod.ai",
           "description": "CODI Core API URL"
         },
         "codi.temperature": {
