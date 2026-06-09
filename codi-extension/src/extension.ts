@@ -8,7 +8,7 @@ export function activate(context: vscode.ExtensionContext) {
   console.log("CODI Extension activating...");
 
   const config = vscode.workspace.getConfiguration("codi");
-  const apiUrl = config.get<string>("apiUrl", "https://wgdlxekgnbcyfo-8000.proxy.runpod.ai");
+  const apiUrl = config.get<string>("apiUrl", "https://bn4vpd34sgt7cg.api.runpod.ai");
   api = new CodiApi(apiUrl);
 
   const provider = new ChatPanelProvider(context.extensionUri, api);
@@ -130,7 +130,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration("codi")) {
         const config = vscode.workspace.getConfiguration("codi");
-        api.setBaseUrl(config.get<string>("apiUrl", "https://wgdlxekgnbcyfo-8000.proxy.runpod.ai"));
+        api.setBaseUrl(config.get<string>("apiUrl", "https://bn4vpd34sgt7cg.api.runpod.ai"));
       }
     })
   );

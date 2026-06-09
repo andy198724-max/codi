@@ -29,7 +29,7 @@ export interface ChatResponse {
 }
 
 export class CodiApi {
-  private baseUrl: string = "https://wgdlxekgnbcyfo-8000.proxy.runpod.ai";
+  private baseUrl: string = "https://bn4vpd34sgt7cg.api.runpod.ai";
 
   constructor(baseUrl?: string) {
     if (baseUrl) this.baseUrl = baseUrl;

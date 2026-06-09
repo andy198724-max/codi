@@ -106,6 +106,11 @@ async def health():
     }
 
 
+@app.get("/ping")
+async def ping():
+    return {"status": "ok"}
+
+
 @app.get("/ready")
 async def ready():
     if _model_ready.is_set() and engine and engine.model:
@@ -202,7 +207,7 @@ if __name__ == "__main__":
     import uvicorn
     config_path = Path(__file__).resolve().parent.parent / "config" / "model_config.yaml"
     host = os.environ.get("CODI_API_HOST", "0.0.0.0")
-    port = int(os.environ.get("CODI_API_PORT", "11435"))
+    port = int(os.environ.get("PORT") or os.environ.get("CODI_API_PORT") or "11435")
     if config_path.exists():
         with open(config_path) as f:
             config = yaml.safe_load(f) or {}

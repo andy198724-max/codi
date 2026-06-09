@@ -31,7 +31,7 @@ export function SettingsDialog({
   const maxTokens = useChatStore((s) => s.maxTokens);
   const setTemperature = useChatStore((s) => s.setTemperature);
   const setMaxTokens = useChatStore((s) => s.setMaxTokens);
-  const [apiUrl, setApiUrl] = useState("https://wgdlxekgnbcyfo-8000.proxy.runpod.ai");
+  const [apiUrl, setApiUrl] = useState("https://bn4vpd34sgt7cg.api.runpod.ai");
   const [saved, setSaved] = useState(false);
 
   const [r2Enabled, setR2Enabled] = useState(false);
@@ -208,7 +208,7 @@ export function SettingsDialog({
                     value={apiUrl}
                     onChange={(e) => setApiUrl(e.target.value)}
                     className="input"
-                    placeholder="https://wgdlxekgnbcyfo-8000.proxy.runpod.ai"
+                    placeholder="https://bn4vpd34sgt7cg.api.runpod.ai"
                   />
                   <p className="text-xs text-surface-400 mt-1">
                     CODI Core server address
