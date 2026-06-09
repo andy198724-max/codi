@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+.env
+.venv/
+venv/
+
+# Build outputs
+dist/
+build/
+target/
+*.exe
+*.dll
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+runpod-deploy/inference/
+runpod-deploy/config/
+
+# Sensitive configs
+**/r2_config.yaml
+
+# Cache
+models/base/
+models/optimized/
+models/r2_mount/

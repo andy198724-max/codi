@@ -1,0 +1,165 @@
+{
+  "name": "codi-extension",
+  "displayName": "CODI - AI Code Assistant",
+  "description": "AI-powered coding assistant with vision capabilities. Chat, analyze images, refactor code, and more.",
+  "version": "1.0.0",
+  "publisher": "codi",
+  "license": "MIT",
+  "icon": "resources/icon.png",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Chat",
+    "Programming Languages",
+    "Machine Learning",
+    "Visualization"
+  ],
+  "keywords": [
+    "ai",
+    "chat",
+    "vision",
+    "copilot",
+    "code assistant",
+    "codi"
+  ],
+  "activationEvents": [
+    "onCommand:codi.explain",
+    "onCommand:codi.refactor",
+    "onCommand:codi.generate",
+    "onCommand:codi.fix",
+    "onCommand:codi.optimize",
+    "onCommand:codi.document",
+    "onCommand:codi.syncFromR2",
+    "onView:codi.chatPanel"
+  ],
+  "main": "./src/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "codi.explain",
+        "title": "Codi: Explain Selected Code"
+      },
+      {
+        "command": "codi.refactor",
+        "title": "Codi: Refactor Selection"
+      },
+      {
+        "command": "codi.generate",
+        "title": "Codi: Generate Function"
+      },
+      {
+        "command": "codi.fix",
+        "title": "Codi: Fix Error in Code"
+      },
+      {
+        "command": "codi.optimize",
+        "title": "Codi: Optimize Performance"
+      },
+      {
+        "command": "codi.document",
+        "title": "Codi: Document Code"
+      },
+      {
+        "command": "codi.openChat",
+        "title": "Codi: Open Chat"
+      },
+      {
+        "command": "codi.clearChat",
+        "title": "Codi: Clear Chat"
+      },
+      {
+        "command": "codi.syncFromR2",
+        "title": "Codi: Sync Model from R2"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "codi-sidebar",
+          "title": "CODI",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "codi-sidebar": [
+        {
+          "type": "webview",
+          "id": "codi.chatPanel",
+          "name": "Chat"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "codi.openChat",
+        "key": "ctrl+shift+i",
+        "mac": "cmd+shift+i",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "codi.explain",
+        "key": "ctrl+shift+e",
+        "mac": "cmd+shift+e",
+        "when": "editorHasSelection"
+      },
+      {
+        "command": "codi.refactor",
+        "key": "ctrl+shift+r",
+        "mac": "cmd+shift+r",
+        "when": "editorHasSelection"
+      }
+    ],
+    "configuration": {
+      "title": "CODI Extension",
+      "properties": {
+        "codi.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:11435",
+          "description": "CODI Core API URL"
+        },
+        "codi.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "description": "Model temperature (0-2)"
+        },
+        "codi.maxTokens": {
+          "type": "number",
+          "default": 4096,
+          "description": "Maximum tokens per response"
+        },
+        "codi.autoContext": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically include file context"
+        },
+        "codi.r2.accountId": {
+          "type": "string",
+          "default": "",
+          "description": "Cloudflare R2 Account ID"
+        },
+        "codi.r2.accessKeyId": {
+          "type": "string",
+          "default": "",
+          "description": "Cloudflare R2 Access Key ID"
+        },
+        "codi.r2.secretAccessKey": {
+          "type": "string",
+          "default": "",
+          "description": "Cloudflare R2 Secret Access Key"
+        },
+        "codi.r2.bucket": {
+          "type": "string",
+          "default": "codi-models",
+          "description": "Cloudflare R2 bucket name"
+        },
+        "codi.r2.modelPath": {
+          "type": "string",
+          "default": "llava-v1.6-34b-hf",
+          "description": "R2 model path prefix"
+        }
+      }
+    }
+  }
+}

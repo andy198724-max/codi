@@ -1,0 +1,45 @@
+name: Build & Push CODI LLaVA Image
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - "codi-core/**"
+      - "runpod-deploy/**"
+      - ".github/workflows/docker-build.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Copy codi-core files into build context
+        run: |
+          mkdir -p runpod-deploy/inference runpod-deploy/config
+          cp -r codi-core/inference/* runpod-deploy/inference/
+          cp -r codi-core/config/* runpod-deploy/config/
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: runpod-deploy
+          file: runpod-deploy/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/codi-llava:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
