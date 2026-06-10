@@ -101,7 +101,7 @@ class CodiInferenceEngine:
             aws_secret_access_key=cfg.get("secret_access_key"),
             config=BotoConfig(
                 connect_timeout=15,
-                read_timeout=60,
+                read_timeout=300,
                 retries={"max_attempts": 2},
             ),
         )
