@@ -29,6 +29,28 @@ except Exception as e:
 
 w(f"\nPYTHONPATH: {os.environ.get('PYTHONPATH','not set')}")
 w(f"Working dir: {os.getcwd()}")
+
+# Test engine creation
+w("\n--- Testing Engine Creation ---")
+try:
+    w("Creating CodiInferenceEngine...")
+    eng = CodiInferenceEngine(
+        model_path=os.environ.get("CODI_MODEL_PATH"),
+        max_context=8192,
+    )
+    w(f"Engine created: model={eng.model is not None}, processor={eng.processor is not None}")
+    w(f"model_path: {eng.model_path}")
+    w(f"r2_enabled: {eng.r2_config.get('enabled')}")
+    if eng._init_errors:
+        w(f"Init errors: {eng._init_errors}")
+    if eng.model_path:
+        import os as _os
+        cache = Path(eng.model_path)
+        if cache.exists():
+            w(f"Cache files ({len(list(cache.iterdir()))}): {sorted([p.name for p in cache.iterdir()])[:30]}")
+except Exception as e:
+    w(f"ENGINE CREATION FAILED: {e}")
+    w(traceback.format_exc())
 w(f"Files in /codi-core: {os.listdir('/codi-core')}")
 
 # Try to upload log to R2  
