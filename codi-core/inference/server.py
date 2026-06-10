@@ -107,6 +107,29 @@ async def health():
     }
 
 
+@app.get("/debug")
+async def debug():
+    import os as _os
+    info = {
+        "engine_created": engine is not None,
+        "model_ready": _model_ready.is_set(),
+        "model_path": engine.model_path if engine else "N/A",
+    }
+    if engine:
+        info["has_model"] = engine.model is not None
+        info["has_processor"] = engine.processor is not None
+        info["r2_enabled"] = engine.r2_config.get("enabled", False) if hasattr(engine, "r2_config") else "unknown"
+        cache_dir = Path(engine.model_path) if engine.model_path else None
+        if cache_dir and cache_dir.exists():
+            items = sorted([p.name for p in cache_dir.iterdir()]) if cache_dir.is_dir() else []
+            info["cache_files"] = items[:30]
+            info["cache_file_count"] = len(items)
+        else:
+            info["cache_files"] = []
+        info["errors"] = getattr(engine, "_init_errors", [])
+    return info
+
+
 @app.get("/ping")
 async def ping():
     logger.info("Ping received")

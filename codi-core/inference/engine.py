@@ -6,7 +6,7 @@ import threading
 from pathlib import Path
 from typing import Optional, List, Dict, Any, AsyncGenerator
 from transformers import (
-    LlavaForConditionalGeneration,
+    LlavaNextForConditionalGeneration,
     AutoProcessor,
     GenerationConfig,
     AutoConfig,
@@ -37,12 +37,14 @@ class CodiInferenceEngine:
         self.model = None
         self.processor = None
         self.model_path = None
+        self._init_errors = []
         try:
             self._resolve_model_path(model_path)
             self._download_missing_shards()
             self._load_processor()
             self._load_model()
         except Exception as e:
+            self._init_errors.append(f"init: {e}")
             logger.warning(f"Model not available: {e}")
             self.model = None
             self.processor = None
@@ -130,6 +132,7 @@ class CodiInferenceEngine:
         try:
             self._ensure_configs_local(model_dir)
         except Exception as e:
+            self._init_errors.append(f"config_download: {e}")
             logger.warning(f"Config download failed: {e}")
         index_file = model_dir / "model.safetensors.index.json"
         if not index_file.exists():
@@ -162,6 +165,7 @@ class CodiInferenceEngine:
                 sz = dest.stat().st_size
                 logger.info(f"  {shard} OK ({sz / 1e9:.2f} GB)")
             except Exception as e:
+                self._init_errors.append(f"shard_{shard}: {e}")
                 logger.warning(f"  {shard} failed: {e}")
         logger.info("All shards downloaded")
 
@@ -221,6 +225,7 @@ class CodiInferenceEngine:
             )
             logger.info("Processor loaded")
         except Exception as e:
+            self._init_errors.append(f"processor: {e}")
             logger.warning(f"Processor not loaded yet: {e}")
             self.processor = None
 
@@ -239,6 +244,7 @@ class CodiInferenceEngine:
                     )
                     logger.info("Processor loaded after config download")
                 except Exception as e:
+                    self._init_errors.append(f"proc_retry: {e}")
                     logger.warning(f"Processor still unavailable: {e}")
                     self.model = None
                     return
@@ -250,19 +256,26 @@ class CodiInferenceEngine:
             all_present = all((model_dir / s).exists() and (model_dir / s).stat().st_size > 0 for s in needed)
             if all_present:
                 logger.info("Loading model from local files...")
-                self.model = LlavaForConditionalGeneration.from_pretrained(
-                    self.model_path, **self._model_kwargs(),
-                )
-                self.model.eval()
-                logger.info("Model loaded successfully")
-                return
+                try:
+                    self.model = LlavaNextForConditionalGeneration.from_pretrained(
+                        self.model_path, **self._model_kwargs(),
+                    )
+                    self.model.eval()
+                    logger.info("Model loaded successfully")
+                    return
+                except Exception as e:
+                    self._init_errors.append(f"model_load: {e}")
+                    raise
         if self.r2_config.get("enabled"):
             if index_file.exists():
                 logger.info("Not all shards present — will need to download first")
             else:
                 logger.info("No shard index found — loading config only")
-            config = AutoConfig.from_pretrained(self.model_path, trust_remote_code=True)
-            logger.info(f"Model config loaded: {config.model_type}, params: ~34B")
+            try:
+                config = AutoConfig.from_pretrained(self.model_path, trust_remote_code=True)
+                logger.info(f"Model config loaded: {config.model_type}, params: ~34B")
+            except Exception as e:
+                self._init_errors.append(f"config_load: {e}")
         logger.warning("Model weights not loaded")
         self.model = None
 
