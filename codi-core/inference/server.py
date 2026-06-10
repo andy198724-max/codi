@@ -211,11 +211,12 @@ if __name__ == "__main__":
     config_path = Path(__file__).resolve().parent.parent / "config" / "model_config.yaml"
     host = os.environ.get("CODI_API_HOST", "0.0.0.0")
     port = int(os.environ.get("PORT") or os.environ.get("CODI_API_PORT") or "11435")
-    if config_path.exists():
-        with open(config_path) as f:
-            config = yaml.safe_load(f) or {}
-        host = config.get("inference", {}).get("api_host", host)
-        port = config.get("inference", {}).get("api_port", port)
+    if not os.environ.get("PORT") and not os.environ.get("CODI_API_PORT"):
+        if config_path.exists():
+            with open(config_path) as f:
+                config = yaml.safe_load(f) or {}
+            host = config.get("inference", {}).get("api_host", host)
+            port = config.get("inference", {}).get("api_port", port)
 
     logging.basicConfig(level=logging.INFO)
     uvicorn.run(app, host=host, port=port)
