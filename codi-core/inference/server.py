@@ -61,7 +61,7 @@ class ModelList(BaseModel):
 
 def init_engine():
     global engine
-    from .engine import CodiInferenceEngine
+    from engine import CodiInferenceEngine
     logger.info("Initializing engine (may download model from R2)...")
     config_path = Path(__file__).resolve().parent.parent / "config" / "model_config.yaml"
     config = {}
