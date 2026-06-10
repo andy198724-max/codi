@@ -24,4 +24,4 @@ RUN mkdir -p /workspace/model_cache
 
 EXPOSE 8000
 
-CMD ["python", "-u", "-m", "uvicorn", "inference.server:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "info"]
+CMD ["python", "-u", "inference/server.py"]

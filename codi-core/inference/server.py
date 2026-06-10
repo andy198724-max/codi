@@ -30,6 +30,8 @@ app.add_middleware(
 engine: Optional[CodiInferenceEngine] = None
 _model_ready = threading.Event()
 
+logger.info("CODI server module loaded, starting on port %s", os.environ.get("PORT", "8000"))
+
 
 class ChatMessage(BaseModel):
     role: str = Field(..., pattern="^(system|user|assistant)$")
@@ -108,6 +110,7 @@ async def health():
 
 @app.get("/ping")
 async def ping():
+    logger.info("Ping received")
     return {"status": "ok"}
 
 
