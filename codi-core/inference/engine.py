@@ -6,7 +6,7 @@ import threading
 from pathlib import Path
 from typing import Optional, List, Dict, Any, AsyncGenerator
 from transformers import (
-    LlavaNextForConditionalGeneration,
+    LlavaForConditionalGeneration,
     AutoProcessor,
     GenerationConfig,
     AutoConfig,
@@ -171,7 +171,7 @@ class CodiInferenceEngine:
 
     def _ensure_configs_local(self, model_dir: Path):
         required_configs = [
-            "config.json", "tokenizer_config.json", "tokenizer.json",
+            "config.json", "tokenizer_config.json",
             "processor_config.json", "preprocessor_config.json",
             "model.safetensors.index.json", "generation_config.json",
             "chat_template.json", "special_tokens_map.json",
@@ -187,8 +187,12 @@ class CodiInferenceEngine:
         bucket = self.r2_config.get("bucket", "codi-models")
         prefix = self.r2_config.get("model_path", "llava-v1.6-34b-hf")
         for cfg_file in missing:
-            logger.info(f"  {cfg_file}")
-            s3.download_file(bucket, f"{prefix}/{cfg_file}", str(model_dir / cfg_file))
+            try:
+                logger.info(f"  {cfg_file}")
+                s3.download_file(bucket, f"{prefix}/{cfg_file}", str(model_dir / cfg_file))
+            except Exception as e:
+                self._init_errors.append(f"cfg_{cfg_file}: {e}")
+                logger.warning(f"  {cfg_file} download failed: {e}")
 
     def _model_kwargs(self) -> dict:
         kwargs = {
@@ -257,7 +261,7 @@ class CodiInferenceEngine:
             if all_present:
                 logger.info("Loading model from local files...")
                 try:
-                    self.model = LlavaNextForConditionalGeneration.from_pretrained(
+                    self.model = LlavaForConditionalGeneration.from_pretrained(
                         self.model_path, **self._model_kwargs(),
                     )
                     self.model.eval()
