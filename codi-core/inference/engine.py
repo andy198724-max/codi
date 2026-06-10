@@ -200,14 +200,33 @@ class CodiInferenceEngine:
     def _load_processor(self):
         if not self.model_path:
             return
-        self.processor = AutoProcessor.from_pretrained(
-            self.model_path, trust_remote_code=True
-        )
-        logger.info("Processor loaded")
+        try:
+            self.processor = AutoProcessor.from_pretrained(
+                self.model_path, trust_remote_code=True
+            )
+            logger.info("Processor loaded")
+        except Exception as e:
+            logger.warning(f"Processor not loaded yet: {e}")
+            self.processor = None
 
     def _load_model(self):
         if not self.model_path:
             return
+        configs_exist = all(
+            (Path(self.model_path) / f).exists()
+            for f in ["config.json", "model.safetensors.index.json"]
+        )
+        if configs_exist:
+            if self.processor is None:
+                try:
+                    self.processor = AutoProcessor.from_pretrained(
+                        self.model_path, trust_remote_code=True
+                    )
+                    logger.info("Processor loaded after config download")
+                except Exception as e:
+                    logger.warning(f"Processor still unavailable: {e}")
+                    self.model = None
+                    return
         model_dir = Path(self.model_path)
         index_file = model_dir / "model.safetensors.index.json"
         if index_file.exists():
