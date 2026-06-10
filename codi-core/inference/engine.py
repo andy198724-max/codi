@@ -18,6 +18,7 @@ import io
 import logging
 import yaml
 import boto3
+from botocore.config import Config as BotoConfig
 
 logger = logging.getLogger("codi.engine")
 
@@ -96,6 +97,11 @@ class CodiInferenceEngine:
             endpoint_url=cfg.get("endpoint") or f"https://{cfg['account_id']}.r2.cloudflarestorage.com",
             aws_access_key_id=cfg.get("access_key_id"),
             aws_secret_access_key=cfg.get("secret_access_key"),
+            config=BotoConfig(
+                connect_timeout=15,
+                read_timeout=60,
+                retries={"max_attempts": 2},
+            ),
         )
 
     def _r2_objects(self):
@@ -121,7 +127,10 @@ class CodiInferenceEngine:
         if not self.model_path:
             return
         model_dir = Path(self.model_path)
-        self._ensure_configs_local(model_dir)
+        try:
+            self._ensure_configs_local(model_dir)
+        except Exception as e:
+            logger.warning(f"Config download failed: {e}")
         index_file = model_dir / "model.safetensors.index.json"
         if not index_file.exists():
             return
@@ -138,6 +147,9 @@ class CodiInferenceEngine:
             return
         logger.info(f"Downloading {len(needed)} shards from R2...")
         s3 = self._get_s3_client()
+        if not s3:
+            logger.warning("S3 client not available")
+            return
         bucket = self.r2_config.get("bucket", "codi-models")
         prefix = self.r2_config.get("model_path", "llava-v1.6-34b-hf")
         for shard in needed:
@@ -145,9 +157,12 @@ class CodiInferenceEngine:
             if dest.exists() and dest.stat().st_size > 0:
                 continue
             logger.info(f"  {shard}...")
-            s3.download_file(bucket, f"{prefix}/{shard}", str(dest))
-            sz = dest.stat().st_size
-            logger.info(f"  {shard} OK ({sz / 1e9:.2f} GB)")
+            try:
+                s3.download_file(bucket, f"{prefix}/{shard}", str(dest))
+                sz = dest.stat().st_size
+                logger.info(f"  {shard} OK ({sz / 1e9:.2f} GB)")
+            except Exception as e:
+                logger.warning(f"  {shard} failed: {e}")
         logger.info("All shards downloaded")
 
     def _ensure_configs_local(self, model_dir: Path):
