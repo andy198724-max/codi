@@ -52,6 +52,12 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/codi-llava:latest
           provenance: false
 
+      - name: Tag short SHA and push
+        run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          docker tag andy8722/codi-llava:${{ github.sha }} andy8722/codi-llava:$SHORT_SHA
+          docker push andy8722/codi-llava:$SHORT_SHA
+
       - name: Make ghcr.io package public
         continue-on-error: true
         run: |
