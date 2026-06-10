@@ -34,15 +34,18 @@ w(f"Files in /codi-core: {os.listdir('/codi-core')}")
 # Try to upload log to R2  
 try:
     w("\nUploading diagnostics to R2...")
+    from botocore.config import Config as BotoConfig
     s3 = boto3.client(
         "s3",
         endpoint_url=f"https://{os.environ['R2_ACCOUNT_ID']}.r2.cloudflarestorage.com",
         aws_access_key_id=os.environ['R2_ACCESS_KEY_ID'],
         aws_secret_access_key=os.environ['R2_SECRET_ACCESS_KEY'],
+        config=BotoConfig(connect_timeout=10, read_timeout=30),
     )
     s3.put_object(Bucket=os.environ['R2_BUCKET'], Key="diagnostics.log", Body=log.getvalue())
     w("Diagnostics uploaded to R2!")
 except Exception as e:
     w(f"Upload failed: {e}")
+    w(traceback.format_exc())
 
 w("\n=== END ===")
