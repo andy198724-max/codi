@@ -13,8 +13,6 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 import yaml
 
-from .engine import CodiInferenceEngine
-
 logger = logging.getLogger("codi.server")
 
 app = FastAPI(title="CODI API", version="1.0.0", description="LLaVA inference API")
@@ -27,7 +25,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-engine: Optional[CodiInferenceEngine] = None
+engine = None
 _model_ready = threading.Event()
 
 logger.info("CODI server module loaded, starting on port %s", os.environ.get("PORT", "8000"))
@@ -63,6 +61,7 @@ class ModelList(BaseModel):
 
 def init_engine():
     global engine
+    from .engine import CodiInferenceEngine
     logger.info("Initializing engine (may download model from R2)...")
     config_path = Path(__file__).resolve().parent.parent / "config" / "model_config.yaml"
     config = {}
@@ -219,4 +218,5 @@ if __name__ == "__main__":
             port = config.get("inference", {}).get("api_port", port)
 
     logging.basicConfig(level=logging.INFO)
+    logger.info("Starting uvicorn on %s:%s", host, port)
     uvicorn.run(app, host=host, port=port)
