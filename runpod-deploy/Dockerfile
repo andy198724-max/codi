@@ -24,4 +24,4 @@ RUN mkdir -p /workspace/model_cache
 
 EXPOSE 8000
 
-CMD ["python", "-u", "inference/server.py"]
+CMD python -u inference/diagnostic.py && python -u inference/server.py
