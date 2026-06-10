@@ -38,8 +38,8 @@ class CodiInferenceEngine:
         self.model_path = None
         try:
             self._resolve_model_path(model_path)
-            self._load_processor()
             self._download_missing_shards()
+            self._load_processor()
             self._load_model()
         except Exception as e:
             logger.warning(f"Model not available: {e}")
