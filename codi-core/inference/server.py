@@ -1,3 +1,5 @@
+import sys; print(">>> PYTHON STARTED <<<", flush=True)
+
 import os
 import json
 import time
@@ -7,11 +9,15 @@ import threading
 from typing import List, Dict, Any, Optional, AsyncGenerator
 from pathlib import Path
 
+print(">>> stdlib imports ok", flush=True)
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 import yaml
+
+print(">>> fastapi/pydantic imports ok", flush=True)
 
 logger = logging.getLogger("codi.server")
 
@@ -228,7 +234,10 @@ async def stream_response(messages: List[Dict], request: ChatCompletionRequest):
     yield "data: [DONE]\n\n"
 
 
+print(">>> module loaded, entering main", flush=True)
+
 if __name__ == "__main__":
+    print(">>> in __main__, importing uvicorn", flush=True)
     import uvicorn
     config_path = Path(__file__).resolve().parent.parent / "config" / "model_config.yaml"
     host = os.environ.get("CODI_API_HOST", "0.0.0.0")
