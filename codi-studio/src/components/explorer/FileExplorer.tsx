@@ -153,7 +153,6 @@ export function FileExplorer({ width, onResize }: FileExplorerProps) {
               Open Folder
             </button>
           </div>
-          </div>
         ) : isLoading ? (
           <div className="px-3 py-8 text-center">
             <p className="text-xs text-surface-400">Loading...</p>
