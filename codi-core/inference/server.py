@@ -72,15 +72,13 @@ def _check_rate_limit(request: Request):
 
 @app.middleware("http")
 async def api_key_middleware(request: Request, call_next):
-    _check_api_key(request)
-    if request.url.path == "/v1/chat/completions":
-        try:
-            body_raw = await request.body()
-            request.state.body = json.loads(body_raw) if body_raw else {}
-        except Exception:
-            request.state.body = {}
-        _check_rate_limit(request)
-    return await call_next(request)
+    if request.url.path not in ("/ping", "/debug", "/health", "/ready", "/v1/models"):
+        auth = request.headers.get("Authorization", "")
+        key = os.environ.get("CODI_API_KEY", "codi-secret-key-2026")
+        if not auth.startswith("Bearer ") or auth.split(" ", 1)[1] != key:
+            raise HTTPException(401, "Invalid API key")
+    response = await call_next(request)
+    return response
 
 
 class ChatMessage(BaseModel):
