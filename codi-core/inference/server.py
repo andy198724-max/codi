@@ -33,6 +33,7 @@ app.add_middleware(
 
 engine = None
 _model_ready = threading.Event()
+_server_errors = []
 
 logger.info("CODI server module loaded, starting on port %s", os.environ.get("PORT", "8000"))
 
@@ -67,21 +68,27 @@ class ModelList(BaseModel):
 
 def init_engine():
     global engine
-    from inference.engine import CodiInferenceEngine
-    logger.info("Initializing engine (may download model from R2)...")
-    config_path = Path(__file__).resolve().parent.parent / "config" / "model_config.yaml"
-    config = {}
-    if config_path.exists():
-        with open(config_path) as f:
-            config = yaml.safe_load(f) or {}
-
     try:
-        engine = CodiInferenceEngine(
-            model_path=os.environ.get("CODI_MODEL_PATH"),
-            max_context=config.get("model", {}).get("context_window", 8192),
-        )
+        from inference.engine import CodiInferenceEngine
+        logger.info("Initializing engine (may download model from R2)...")
+        config_path = Path(__file__).resolve().parent.parent / "config" / "model_config.yaml"
+        config = {}
+        if config_path.exists():
+            with open(config_path) as f:
+                config = yaml.safe_load(f) or {}
+
+        try:
+            engine = CodiInferenceEngine(
+                model_path=os.environ.get("CODI_MODEL_PATH"),
+                max_context=config.get("model", {}).get("context_window", 8192),
+            )
+        except Exception as e:
+            logger.error(f"Engine initialization failed: {e}")
+            engine = None
     except Exception as e:
-        logger.error(f"Engine initialization failed: {e}")
+        logger.error(f"Engine import/config failed: {e}")
+        import traceback
+        _server_errors.append(f"init_engine: {e}\n{traceback.format_exc()}")
         engine = None
 
     if engine is not None and engine.model is not None:
@@ -133,6 +140,7 @@ async def debug():
         else:
             info["cache_files"] = []
         info["errors"] = getattr(engine, "_init_errors", [])
+    info["server_errors"] = _server_errors
     return info
 
 
