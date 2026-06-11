@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "codi-extension",
   "displayName": "CODI - AI Code Assistant",
   "description": "AI-powered coding assistant with vision capabilities. Chat, analyze images, refactor code, and more.",
@@ -116,7 +116,7 @@
       "properties": {
         "codi.apiUrl": {
           "type": "string",
-          "default": "https://bq4k3y1q9e6tds.api.runpod.ai",
+          "default": "https://7zya4zzok7kirr.api.runpod.ai",
           "description": "CODI Core API URL"
         },
         "codi.temperature": {
@@ -163,3 +163,4 @@
     }
   }
 }
+

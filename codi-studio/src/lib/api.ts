@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+﻿import { invoke } from "@tauri-apps/api/core";
 
 export interface Message {
   role: "system" | "user" | "assistant";
@@ -29,7 +29,7 @@ export interface ChatResponse {
 }
 
 export class CodiApi {
-  private baseUrl: string = "https://bq4k3y1q9e6tds.api.runpod.ai";
+  private baseUrl: string = "https://7zya4zzok7kirr.api.runpod.ai";
   private authKey: string = "";
 
   constructor(baseUrl?: string, authKey?: string) {
