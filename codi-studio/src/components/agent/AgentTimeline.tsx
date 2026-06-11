@@ -36,13 +36,13 @@ export function AgentTimeline({ onClose }: Props) {
     return (
       <div className="panel border-t border-surface-850">
         <div className="panel-header">
-          <span>Agent Timeline</span>
+          <span>Linea de Tiempo</span>
           <button onClick={onClose} className="btn-ghost p-0.5">
             <X size={12} />
           </button>
         </div>
         <div className="flex-1 flex items-center justify-center text-surface-500 text-xs p-4">
-          No actions yet. Send a task in Agent Mode to see the timeline.
+          Sin acciones aun. Envia una tarea en Modo Agente para ver la linea de tiempo.
         </div>
       </div>
     );
@@ -52,14 +52,14 @@ export function AgentTimeline({ onClose }: Props) {
     <div className="panel border-t border-surface-850 animate-fade-in">
       <div className="panel-header shrink-0">
         <div className="flex items-center gap-2">
-          <span>Agent Timeline</span>
+          <span>Linea de Tiempo</span>
           <span className="text-surface-600 text-xxs bg-surface-800 px-1.5 py-0.5 rounded">
             {actions.length}
           </span>
         </div>
         <div className="flex items-center gap-1">
-          <button onClick={clearActions} className="btn-ghost text-xxs p-0.5 px-1.5" title="Clear all">
-            Clear
+          <button onClick={clearActions} className="btn-ghost text-xxs p-0.5 px-1.5" title="Limpiar todo">
+            Limpiar
           </button>
           <button onClick={onClose} className="btn-ghost p-0.5">
             <X size={12} />
@@ -95,7 +95,7 @@ export function AgentTimeline({ onClose }: Props) {
                   </div>
                   {action.result && (
                     <div>
-                      <span className="text-surface-600">result: </span>
+                      <span className="text-surface-600">resultado: </span>
                       <code className={action.result.success ? "text-emerald-400" : "text-red-400"}>
                         {JSON.stringify(action.result).slice(0, 200)}
                       </code>

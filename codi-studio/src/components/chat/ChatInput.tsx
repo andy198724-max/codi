@@ -89,7 +89,7 @@ export function ChatInput({ onSend, isLoading, isAgent, placeholder }: Props) {
         "focus-within:border-codi-500/50 focus-within:bg-surface-900/60"
       )}>
         <div className="flex gap-1 items-center mb-1.5">
-          <button onClick={handleImagePick} className="btn-ghost p-1" title="Add image (Ctrl+V to paste)">
+          <button onClick={handleImagePick} className="btn-ghost p-1" title="Agregar imagen">
             <Image size={15} />
           </button>
           <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileChange} />

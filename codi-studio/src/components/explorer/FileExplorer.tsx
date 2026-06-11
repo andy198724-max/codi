@@ -123,7 +123,7 @@ export function FileExplorer({ width, onResize }: FileExplorerProps) {
             <button
               onClick={handleOpenProject}
               className="btn-ghost p-1"
-              title="Open Folder"
+              title="Abrir Carpeta"
             >
               <FolderOpen size={14} />
             </button>
@@ -147,10 +147,10 @@ export function FileExplorer({ width, onResize }: FileExplorerProps) {
         {!rootPath ? (
           <div className="px-4 py-12 text-center">
             <Folder size={32} className="mx-auto mb-3 text-surface-600" />
-            <p className="text-sm text-surface-400 mb-1">No folder open</p>
-            <p className="text-xs text-surface-600 mb-4">Open a project folder to browse files</p>
+            <p className="text-sm text-surface-400 mb-1">Sin carpeta abierta</p>
+            <p className="text-xs text-surface-600 mb-4">Abre un proyecto para explorar archivos</p>
             <button onClick={handleOpenProject} className="btn-primary text-xs">
-              Open Folder
+              Abrir Carpeta
             </button>
           </div>
         ) : isLoading ? (

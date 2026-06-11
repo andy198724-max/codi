@@ -51,13 +51,13 @@ export function StatusBar({ view, onViewChange, showExplorer, onToggleExplorer, 
           className={cn("px-1.5 py-0.5 rounded hover:bg-white/10 transition-colors flex items-center gap-1 ml-1",
             showTimeline && "bg-white/15")}>
           <Activity size={11} />
-          Timeline
+          Linea tiempo
         </button>
       </div>
 
       <div className="flex items-center gap-0.5">
         {isStreaming || isLoading ? (
-          <span className="flex items-center gap-1 px-1.5"><Loader2 size={10} className="animate-spin" /> Working</span>
+          <span className="flex items-center gap-1 px-1.5"><Loader2 size={10} className="animate-spin" /> Trabajando</span>
         ) : (
           <span className="flex items-center gap-1 px-1.5">
             {isConnected ? <Wifi size={10} /> : <WifiOff size={10} />}
