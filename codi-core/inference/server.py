@@ -34,6 +34,7 @@ app.add_middleware(
 engine = None
 _model_ready = threading.Event()
 _server_errors = []
+_init_started = False
 
 logger.info("CODI server module loaded, starting on port %s", os.environ.get("PORT", "8000"))
 
@@ -103,6 +104,8 @@ def init_engine():
 
 @app.on_event("startup")
 async def startup():
+    global _init_started
+    _init_started = True
     thread = threading.Thread(target=init_engine, daemon=True)
     thread.start()
     logger.info("Engine initialization started in background")
@@ -124,11 +127,17 @@ async def health():
 
 @app.get("/debug")
 async def debug():
+    global _init_started, engine
+    if not _init_started and engine is None:
+        logger.info("/debug forcing engine init")
+        init_engine()
+        _init_started = True
     import os as _os
     info = {
         "engine_created": engine is not None,
         "model_ready": _model_ready.is_set(),
         "model_path": engine.model_path if engine else "N/A",
+        "init_started": _init_started,
     }
     if engine:
         info["has_model"] = engine.model is not None
