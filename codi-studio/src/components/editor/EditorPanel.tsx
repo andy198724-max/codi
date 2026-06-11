@@ -68,18 +68,11 @@ export function EditorPanel() {
 
   if (!selectedFilePath) {
     return (
-      <div className="h-full flex items-center justify-center bg-surface-50 dark:bg-surface-950">
+      <div className="h-full flex items-center justify-center bg-surface-925">
         <div className="text-center">
-          <FileCode
-            size={48}
-            className="mx-auto mb-3 text-surface-300 dark:text-surface-700"
-          />
-          <p className="text-sm text-surface-400">
-            Select a file to start editing
-          </p>
-          <p className="text-xs text-surface-400 mt-1">
-            Files appear in the explorer panel on the left
-          </p>
+          <FileCode size={40} className="mx-auto mb-3 text-surface-600" />
+          <p className="text-sm text-surface-400">Selecciona un archivo para editar</p>
+          <p className="text-xs text-surface-600 mt-1">Usa el explorador de la izquierda</p>
         </div>
       </div>
     );
@@ -88,7 +81,7 @@ export function EditorPanel() {
   return (
     <div
       className={cn(
-        "flex flex-col bg-surface-50 dark:bg-surface-950",
+        "flex flex-col bg-surface-925",
         isFullscreen ? "fixed inset-0 z-50" : "h-full"
       )}
     >

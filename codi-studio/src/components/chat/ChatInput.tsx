@@ -100,7 +100,7 @@ export function ChatInput({ onSend, isLoading, isAgent, placeholder }: Props) {
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
-          placeholder={placeholder || (isAgent ? "Describe la tarea a ejecutar..." : "Escribe un mensaje...  / para comandos  @ para archivos")}
+          placeholder={placeholder || (isAgent ? "Describe la tarea a ejecutar..." : "Escribe un mensaje...")}
           rows={1}
           className="flex-1 bg-transparent border-0 outline-none resize-none text-sm text-surface-100 placeholder:text-surface-600 py-1.5 font-sans"
         />
@@ -118,10 +118,8 @@ export function ChatInput({ onSend, isLoading, isAgent, placeholder }: Props) {
         </button>
       </div>
       <div className="flex items-center gap-3 mt-1.5 px-1">
-        <span className="text-xxs text-surface-600">
-          {isAgent ? "Agent" : "Chat"} · Ctrl+Enter enviar · Shift+Enter nueva linea
-        </span>
-        <span className="text-xxs text-surface-700 ml-auto">CODI 34B</span>
+        <span className="text-xxs text-surface-600">Shift+Enter nueva linea</span>
+        <span className="text-xxs text-surface-600 ml-auto">Ctrl+Enter enviar</span>
       </div>
     </div>
   );

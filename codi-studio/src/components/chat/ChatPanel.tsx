@@ -37,17 +37,14 @@ export function ChatPanel() {
     return (
       <div className="panel h-full">
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-          <div className="w-12 h-12 rounded-xl bg-codi-500/10 flex items-center justify-center mb-4">
-            <span className="text-2xl font-bold text-codi-400">C</span>
+          <div className="w-14 h-14 rounded-2xl bg-codi-500/10 flex items-center justify-center mb-5 ring-1 ring-codi-500/20">
+            <span className="text-3xl font-bold text-codi-400">C</span>
           </div>
-          <h2 className="text-lg font-semibold text-surface-200 mb-2">CODI Studio</h2>
-          <p className="text-sm text-surface-500 mb-6 max-w-sm">
-            Tu asistente de programacion con IA. Escribe un mensaje para empezar.
+          <h2 className="text-lg font-semibold text-surface-100 mb-1.5">CODI Studio</h2>
+          <p className="text-sm text-surface-500 mb-8 max-w-xs leading-relaxed">
+            Asistente de IA para programacion. Escribe, sube imagenes o activa el modo agente.
           </p>
           <ChatInput onSend={handleSend} isLoading={false} isAgent={mode === "agent"} />
-        </div>
-        <div className="px-4 py-2 text-center text-xs text-surface-600">
-          CODI 34B · LLaVA-NeXT · 4-bit
         </div>
       </div>
     );
@@ -57,8 +54,8 @@ export function ChatPanel() {
     <div className="panel h-full">
       <div className="flex-1 overflow-y-auto" ref={scrollRef}>
         {messages.length === 0 && (
-          <div className="flex items-center justify-center h-full text-surface-500 text-sm p-8">
-            Envia un mensaje para comenzar...
+          <div className="flex items-center justify-center h-full text-surface-600 text-sm p-8">
+            Envia un mensaje para comenzar
           </div>
         )}
         {messages.map((msg, i) => (
