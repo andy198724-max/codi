@@ -163,53 +163,57 @@ async def list_models():
 
 @app.post("/v1/chat/completions")
 async def chat_completions(request: ChatCompletionRequest):
-    if engine is None or engine.model is None:
-        raise HTTPException(503, "Model not loaded")
-    if engine.processor is None:
-        raise HTTPException(503, "Processor not loaded")
+    try:
+        if engine is None or engine.model is None:
+            raise HTTPException(503, "Model not loaded")
+        if engine.processor is None:
+            raise HTTPException(503, "Processor not loaded")
 
-    messages = [m.model_dump() for m in request.messages]
+        messages = [m.model_dump() for m in request.messages]
 
-    if request.stream:
-        return StreamingResponse(
-            stream_response(messages, request),
-            media_type="text/event-stream",
-            headers={
-                "Cache-Control": "no-cache",
-                "Connection": "keep-alive",
-                "X-Accel-Buffering": "no",
+        if request.stream:
+            return StreamingResponse(
+                stream_response(messages, request),
+                media_type="text/event-stream",
+                headers={
+                    "Cache-Control": "no-cache",
+                    "Connection": "keep-alive",
+                    "X-Accel-Buffering": "no",
+                },
+            )
+
+        full_response = ""
+        async for chunk in engine.generate(
+            messages,
+            temperature=request.temperature,
+            max_tokens=request.max_tokens,
+            top_p=request.top_p,
+            stream=True,
+        ):
+            full_response = chunk
+
+        return {
+            "id": f"chatcmpl-{int(time.time())}",
+            "object": "chat.completion",
+            "created": int(time.time()),
+            "model": request.model,
+            "choices": [{
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": full_response,
+                },
+                "finish_reason": "stop",
+            }],
+            "usage": {
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0,
             },
-        )
-
-    full_response = ""
-    async for chunk in engine.generate(
-        messages,
-        temperature=request.temperature,
-        max_tokens=request.max_tokens,
-        top_p=request.top_p,
-        stream=True,
-    ):
-        full_response = chunk
-
-    return {
-        "id": f"chatcmpl-{int(time.time())}",
-        "object": "chat.completion",
-        "created": int(time.time()),
-        "model": request.model,
-        "choices": [{
-            "index": 0,
-            "message": {
-                "role": "assistant",
-                "content": full_response,
-            },
-            "finish_reason": "stop",
-        }],
-        "usage": {
-            "prompt_tokens": 0,
-            "completion_tokens": 0,
-            "total_tokens": 0,
-        },
-    }
+        }
+    except Exception as e:
+        import traceback
+        raise HTTPException(500, f"{type(e).__name__}: {e}\n{traceback.format_exc()}")
 
 
 async def stream_response(messages: List[Dict], request: ChatCompletionRequest):
