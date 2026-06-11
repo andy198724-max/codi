@@ -84,6 +84,8 @@ def init_engine():
             )
         except Exception as e:
             logger.error(f"Engine initialization failed: {e}")
+            import traceback
+            _server_errors.append(f"engine_create: {e}\n{traceback.format_exc()}")
             engine = None
     except Exception as e:
         logger.error(f"Engine import/config failed: {e}")
