@@ -52,14 +52,14 @@ export function ChatMessage({ message }: ChatMessageProps) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
             <span className="text-xs font-medium text-surface-400">
-              {isUser ? "You" : "CODI"}
+              {isUser ? "Tu" : "CODI"}
             </span>
           </div>
 
           {images.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-2">
               {images.map((img, i) => (
-                <img key={i} src={img.image_url.url} alt={`Upload ${i + 1}`}
+                <img key={i} src={img.image_url.url}                   alt={`Imagen ${i + 1}`}
                   className="max-w-[200px] max-h-[150px] object-cover rounded border border-surface-850" />
               ))}
             </div>
@@ -85,7 +85,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
                               className="flex items-center gap-1 text-xxs text-surface-500 hover:text-surface-300 transition-colors"
                             >
                               {isCopied ? <Check size={11} /> : <Copy size={11} />}
-                              {isCopied ? "Copied" : "Copy"}
+                              {isCopied ? "Copiado" : "Copiar"}
                             </button>
                           </div>
                           <SyntaxHighlighter

@@ -36,11 +36,11 @@ export function SettingsDialog({ onClose }: SettingsDialogProps) {
   const [r2ModelPath, setR2ModelPath] = useState("llava-v1.6-34b-hf");
 
   const tabs: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
-    { id: "model", label: "Model", icon: Sliders },
-    { id: "appearance", label: "Appearance", icon: Palette },
-    { id: "connection", label: "Connection", icon: Wifi },
-    { id: "storage", label: "Storage", icon: Cloud },
-    { id: "about", label: "About", icon: Info },
+    { id: "model", label: "Modelo", icon: Sliders },
+    { id: "appearance", label: "Apariencia", icon: Palette },
+    { id: "connection", label: "Conexion", icon: Wifi },
+    { id: "storage", label: "Almacenamiento", icon: Cloud },
+    { id: "about", label: "Acerca de", icon: Info },
   ];
 
   const handleSaveConnection = async () => {
@@ -80,7 +80,7 @@ export function SettingsDialog({ onClose }: SettingsDialogProps) {
           <div className="flex items-center gap-2">
             <Settings size={18} className="text-surface-500" />
             <h2 className="font-semibold text-surface-900 dark:text-surface-100">
-              Settings
+              Configuracion
             </h2>
           </div>
           <button
@@ -117,7 +117,7 @@ export function SettingsDialog({ onClose }: SettingsDialogProps) {
               <div className="space-y-6">
                 <div className="p-3 bg-surface-50 dark:bg-surface-950 rounded-lg mb-4">
                   <p className="text-xs text-surface-500">
-                    Active model: <strong>codi-llava</strong> (LLaVA-1.6 34B)
+                    Modelo activo: <strong>codi-llava</strong> (LLaVA-1.6 34B)
                   </p>
                 </div>
 
@@ -135,7 +135,7 @@ export function SettingsDialog({ onClose }: SettingsDialogProps) {
                     className="w-full accent-codi-600"
                   />
                   <p className="text-xs text-surface-400 mt-1">
-                    Lower = more deterministic, higher = more creative
+                    Menor = mas determinista, mayor = mas creativo
                   </p>
                 </div>
 
@@ -159,7 +159,7 @@ export function SettingsDialog({ onClose }: SettingsDialogProps) {
             {activeTab === "appearance" && (
               <div className="space-y-4">
                 <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
-                  Theme
+                  Tema
                 </label>
                 <div className="grid grid-cols-1 gap-3">
                   <div className="p-4 rounded-xl border-2 border-codi-500 bg-codi-950/30 text-center transition-all">
@@ -174,7 +174,7 @@ export function SettingsDialog({ onClose }: SettingsDialogProps) {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">
-                    API URL
+                    URL de la API
                   </label>
                   <input
                     type="text"
@@ -184,17 +184,17 @@ export function SettingsDialog({ onClose }: SettingsDialogProps) {
                     placeholder="https://7zya4zzok7kirr.api.runpod.ai"
                   />
                   <p className="text-xs text-surface-400 mt-1">
-                    CODI Core server address
+                    Direccion del servidor CODI Core
                   </p>
                 </div>
                 <button onClick={handleSaveConnection} className="btn-primary">
                   {saved ? (
                     <>
                       <Check size={14} />
-                      Saved
+                      Guardado
                     </>
                   ) : (
-                    "Save Connection"
+                    "Guardar conexion"
                   )}
                 </button>
               </div>
@@ -203,11 +203,11 @@ export function SettingsDialog({ onClose }: SettingsDialogProps) {
             {activeTab === "storage" && (
               <div className="space-y-4">
                 <h3 className="text-sm font-medium text-surface-900 dark:text-surface-100">
-                  Cloudflare R2 Storage
+                  Almacenamiento Cloudflare R2
                 </h3>
                 <p className="text-xs text-surface-400">
-                  Store the LLaVA model in Cloudflare R2 instead of locally.
-                  Requires R2 credentials from your Cloudflare dashboard.
+                  Almacena el modelo LLaVA en Cloudflare R2 en vez de localmente.
+                  Requiere credenciales R2 de tu panel de Cloudflare.
                 </p>
 
                 <label className="flex items-center gap-2">
@@ -218,7 +218,7 @@ export function SettingsDialog({ onClose }: SettingsDialogProps) {
                     className="rounded border-surface-300"
                   />
                   <span className="text-sm text-surface-700 dark:text-surface-300">
-                    Enable R2 storage
+                    Habilitar R2
                   </span>
                 </label>
 
@@ -226,38 +226,38 @@ export function SettingsDialog({ onClose }: SettingsDialogProps) {
                   <div className="space-y-3">
                     <div>
                       <label className="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">
-                        Account ID
+                        ID de cuenta
                       </label>
                       <input
                         type="text"
                         value={r2AccountId}
                         onChange={(e) => setR2AccountId(e.target.value)}
                         className="input w-full text-xs"
-                        placeholder="Cloudflare R2 Account ID"
+                        placeholder="ID de cuenta Cloudflare R2"
                       />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">
-                        Access Key ID
+                        ID de clave de acceso
                       </label>
                       <input
                         type="text"
                         value={r2AccessKey}
                         onChange={(e) => setR2AccessKey(e.target.value)}
                         className="input w-full text-xs"
-                        placeholder="R2 Access Key ID"
+                        placeholder="ID de clave de acceso R2"
                       />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">
-                        Secret Access Key
+                        Clave de acceso secreta
                       </label>
                       <input
                         type="password"
                         value={r2SecretKey}
                         onChange={(e) => setR2SecretKey(e.target.value)}
                         className="input w-full text-xs"
-                        placeholder="R2 Secret Access Key"
+                        placeholder="Clave de acceso secreta R2"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
@@ -274,7 +274,7 @@ export function SettingsDialog({ onClose }: SettingsDialogProps) {
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">
-                          Model Path
+                          Ruta del modelo
                         </label>
                         <input
                           type="text"
@@ -291,10 +291,10 @@ export function SettingsDialog({ onClose }: SettingsDialogProps) {
                   {saved ? (
                     <>
                       <Check size={14} />
-                      Saved
+                      Guardado
                     </>
                   ) : (
-                    "Save R2 Settings"
+                    "Guardar configuracion R2"
                   )}
                 </button>
               </div>
@@ -310,8 +310,8 @@ export function SettingsDialog({ onClose }: SettingsDialogProps) {
                 </div>
                 <div className="p-3 bg-surface-50 dark:bg-surface-950 rounded-lg">
                   <p className="text-xs text-surface-500">
-                    CODI is an AI-powered coding assistant with vision
-                    capabilities powered by LLaVA-1.6 34B. Built with Tauri, React, and TypeScript.
+                    CODI es un asistente de IA para programacion con capacidades de vision
+                    impulsado por LLaVA-1.6 34B. Construido con Tauri, React y TypeScript.
                   </p>
                 </div>
               </div>

@@ -36,7 +36,7 @@ export function AgentPanel() {
         <div className="flex items-center gap-2 mb-2">
           <Bot size={16} className="text-codi-500" />
           <span className="text-sm font-medium text-surface-900 dark:text-surface-100">
-            Agent Mode
+            Modo agente
           </span>
         </div>
         <label className="flex items-center gap-2 text-xs text-surface-500 cursor-pointer">
@@ -46,7 +46,7 @@ export function AgentPanel() {
             onChange={(e) => setAutoApprove(e.target.checked)}
             className="rounded border-surface-300 text-codi-600 focus:ring-codi-500"
           />
-          Auto-approve actions
+          Aprobar automaticamente
         </label>
       </div>
 
@@ -56,10 +56,10 @@ export function AgentPanel() {
           <div className="px-3 py-8 text-center">
             <Shield size={24} className="mx-auto mb-2 text-surface-300 dark:text-surface-700" />
             <p className="text-xs text-surface-400">
-              Agent actions will appear here
+              Las acciones del agente apareceran aqui
             </p>
             <p className="text-xs text-surface-500 mt-1">
-              CODI will ask before modifying files
+              CODI preguntara antes de modificar archivos
             </p>
           </div>
         ) : (
@@ -86,10 +86,10 @@ export function AgentPanel() {
               {action.status === "pending" && (
                 <div className="flex gap-2 pt-1">
                   <button className="btn-primary text-[10px] px-3 py-1">
-                    Approve
+                    Aprobar
                   </button>
                   <button className="btn-secondary text-[10px] px-3 py-1">
-                    Deny
+                    Denegar
                   </button>
                 </div>
               )}

@@ -97,12 +97,12 @@ async fn chat_completion(
         .json(&request)
         .send()
         .await
-        .map_err(|e| format!("API request failed: {}", e))?;
+        .map_err(|e|         format!("Error en la solicitud a la API: {}", e))?;
 
     let chat_resp: ChatResponse = response
         .json()
         .await
-        .map_err(|e| format!("Failed to parse response: {}", e))?;
+        .map_err(|e|         format!("Error al analizar respuesta: {}", e))?;
 
     Ok(chat_resp.choices[0].message.content.clone())
 }

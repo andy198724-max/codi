@@ -97,13 +97,13 @@ export function EditorPanel() {
 
         <div className="flex-1" />
 
-        <button onClick={handleSave} className="btn-ghost" title="Save">
+        <button onClick={handleSave} className="btn-ghost"                 title="Guardar">
           <Save size={14} />
         </button>
         <button
           onClick={() => setIsFullscreen(!isFullscreen)}
           className="btn-ghost"
-          title="Toggle Fullscreen"
+                title="Pantalla completa"
         >
           {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
         </button>

@@ -117,7 +117,7 @@ export function FileExplorer({ width, onResize }: FileExplorerProps) {
       <div className="px-3 py-2.5 border-b border-surface-850">
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs font-semibold uppercase tracking-wider text-surface-500">
-            Explorer
+            Explorador
           </span>
           <div className="flex items-center gap-0.5">
             <button
@@ -127,10 +127,10 @@ export function FileExplorer({ width, onResize }: FileExplorerProps) {
             >
               <FolderOpen size={14} />
             </button>
-            <button className="btn-ghost p-1" title="New File">
+              <button className="btn-ghost p-1" title="Nuevo archivo">
               <Plus size={14} />
             </button>
-            <button className="btn-ghost p-1" title="Refresh">
+              <button className="btn-ghost p-1" title="Refrescar">
               <RefreshCw size={14} />
             </button>
           </div>
@@ -155,7 +155,7 @@ export function FileExplorer({ width, onResize }: FileExplorerProps) {
           </div>
         ) : isLoading ? (
           <div className="px-3 py-8 text-center">
-            <p className="text-xs text-surface-400">Loading...</p>
+            <p className="text-xs text-surface-400">Cargando...</p>
           </div>
         ) : (
           <div className="space-y-0.5">

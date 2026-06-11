@@ -42,7 +42,7 @@ export function Sidebar() {
             bg-codi-600 hover:bg-codi-700 text-white rounded-lg transition-colors"
         >
           <Plus size={16} />
-          New Chat
+          Nuevo chat
         </button>
 
         <div className="relative mt-2">
@@ -52,7 +52,7 @@ export function Sidebar() {
           />
           <input
             type="text"
-            placeholder="Search conversations..."
+            placeholder="Buscar conversaciones..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-surface-900
@@ -66,7 +66,7 @@ export function Sidebar() {
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
         {filtered.length === 0 && (
           <p className="text-xs text-surface-400 text-center py-8">
-            {search ? "No results" : "No conversations yet"}
+            {search ? "Sin resultados" : "Aun no hay conversaciones"}
           </p>
         )}
         {filtered.map((conv) => (
