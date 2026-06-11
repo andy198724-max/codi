@@ -1,122 +1,128 @@
-import { useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
+import { Send, Image, Paperclip } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  Send,
-  Image,
-  Paperclip,
-  Zap,
-  MessageSquare,
-} from "lucide-react";
 
-interface ChatInputProps {
-  value: string;
-  onChange: (value: string) => void;
-  onSend: () => void;
-  onPaste: () => void;
-  onImageSelect: () => void;
-  disabled?: boolean;
-  mode: "chat" | "agent";
-  hasImages?: boolean;
+interface Props {
+  onSend: (content: string, images: string[]) => void;
+  isLoading: boolean;
+  isAgent: boolean;
+  placeholder?: string;
 }
 
-export function ChatInput({
-  value,
-  onChange,
-  onSend,
-  onPaste,
-  onImageSelect,
-  disabled,
-  mode,
-  hasImages,
-}: ChatInputProps) {
+export function ChatInput({ onSend, isLoading, isAgent, placeholder }: Props) {
+  const [text, setText] = useState("");
+  const [images, setImages] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const ta = textareaRef.current;
     if (ta) {
       ta.style.height = "auto";
-      ta.style.height = Math.min(ta.scrollHeight, 200) + "px";
+      ta.style.height = Math.min(ta.scrollHeight, 160) + "px";
     }
-  }, [value]);
+  }, [text]);
 
-  useEffect(() => {
-    const handlePaste = (e: ClipboardEvent) => {
-      if (e.clipboardData?.files.length) {
-        onPaste();
-        e.preventDefault();
-      }
-    };
-    const ta = textareaRef.current;
-    ta?.addEventListener("paste", handlePaste);
-    return () => ta?.removeEventListener("paste", handlePaste);
-  }, [onPaste]);
+  const handleSend = () => {
+    const trimmed = text.trim();
+    if (!trimmed && images.length === 0) return;
+    if (isLoading) return;
+    onSend(trimmed || "Analiza esta imagen", images);
+    setText("");
+    setImages([]);
+  };
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        onSend();
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = Array.from(e.clipboardData.items);
+    for (const item of items) {
+      if (item.type.startsWith("image/")) {
+        const file = item.getAsFile();
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = () => setImages((p) => [...p, reader.result as string]);
+          reader.readAsDataURL(file);
+        }
       }
-    },
-    [onSend]
-  );
+    }
+  };
+
+  const handleImagePick = () => fileInputRef.current?.click();
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    for (const file of files) {
+      const reader = new FileReader();
+      reader.onload = () => setImages((p) => [...p, reader.result as string]);
+      reader.readAsDataURL(file);
+    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const showImageZone = images.length > 0;
 
   return (
-    <div
-      className={cn(
-        "flex items-end gap-2 p-2 rounded-xl border transition-colors",
-        "bg-white dark:bg-surface-900",
-        hasImages
-          ? "border-codi-400 dark:border-codi-600"
-          : "border-surface-200 dark:border-surface-700 focus-within:border-codi-400 dark:focus-within:border-codi-600"
+    <div className={cn("p-3", showImageZone && "bg-codi-500/5 rounded-t-lg")}>
+      {images.length > 0 && (
+        <div className="flex gap-2 mb-2 overflow-x-auto pb-1">
+          {images.map((img, i) => (
+            <div key={i} className="relative shrink-0 group">
+              <img src={img} alt="" className="h-16 w-16 object-cover rounded border border-surface-850" />
+              <button
+                onClick={() => setImages((p) => p.filter((_, j) => j !== i))}
+                className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-xxs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                x
+              </button>
+            </div>
+          ))}
+        </div>
       )}
-    >
-      {/* Input Area */}
-      <div className="flex-1 flex flex-col gap-1">
+      <div className={cn(
+        "flex items-end gap-2 rounded-lg border transition-colors duration-150 px-3 py-2",
+        showImageZone ? "border-codi-500/40 bg-surface-900/50" : "border-surface-850 bg-surface-900/30",
+        "focus-within:border-codi-500/50 focus-within:bg-surface-900/60"
+      )}>
+        <div className="flex gap-1 items-center mb-1.5">
+          <button onClick={handleImagePick} className="btn-ghost p-1" title="Add image (Ctrl+V to paste)">
+            <Image size={15} />
+          </button>
+          <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileChange} />
+        </div>
         <textarea
           ref={textareaRef}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={
-            mode === "agent"
-              ? "Ask CODI to do anything (Ctrl+Enter to send)..."
-              : "Ask CODI anything (Ctrl+Enter to send)..."
-          }
+          onPaste={handlePaste}
+          placeholder={placeholder || (isAgent ? "Describe la tarea a ejecutar..." : "Escribe un mensaje...  / para comandos  @ para archivos")}
           rows={1}
-          className="w-full resize-none bg-transparent text-sm text-surface-900 dark:text-surface-100 placeholder:text-surface-400 outline-none font-sans leading-relaxed py-1 px-1"
-          disabled={disabled}
+          className="flex-1 bg-transparent border-0 outline-none resize-none text-sm text-surface-100 placeholder:text-surface-600 py-1.5 font-sans"
         />
-
-        {/* Toolbar */}
-        <div className="flex items-center gap-1">
-          <button
-            onClick={onImageSelect}
-            className="flex items-center gap-1 px-2 py-1 text-xs text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 rounded transition-colors"
-            title="Attach Image"
-          >
-            <Image size={14} />
-            Image
-          </button>
-          <span className="text-xs text-surface-300 dark:text-surface-600">
-            Ctrl+Enter to send
-          </span>
-        </div>
+        <button
+          onClick={handleSend}
+          disabled={!text.trim() && images.length === 0}
+          className={cn(
+            "shrink-0 p-1.5 rounded transition-all duration-150 mb-0.5",
+            (text.trim() || images.length > 0) && !isLoading
+              ? "bg-codi-500 text-white hover:bg-codi-400"
+              : "bg-surface-800 text-surface-600"
+          )}
+        >
+          <Send size={14} />
+        </button>
       </div>
-
-      {/* Send Button */}
-      <button
-        onClick={onSend}
-        disabled={disabled || (!value.trim() && !hasImages)}
-        className={cn(
-          "shrink-0 w-9 h-9 flex items-center justify-center rounded-lg transition-all",
-          value.trim() || hasImages
-            ? "bg-codi-600 hover:bg-codi-700 text-white shadow-sm shadow-codi-500/20"
-            : "bg-surface-100 dark:bg-surface-800 text-surface-400"
-        )}
-      >
-        <Send size={16} />
-      </button>
+      <div className="flex items-center gap-3 mt-1.5 px-1">
+        <span className="text-xxs text-surface-600">
+          {isAgent ? "Agent" : "Chat"} · Ctrl+Enter enviar · Shift+Enter nueva linea
+        </span>
+        <span className="text-xxs text-surface-700 ml-auto">CODI 34B</span>
+      </div>
     </div>
   );
 }

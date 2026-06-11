@@ -1,15 +1,6 @@
 import { useChatStore } from "@/stores/chat";
 import { cn } from "@/lib/utils";
-import {
-  MessageSquare,
-  Code2,
-  Columns,
-  PanelLeft,
-  Settings,
-  Wifi,
-  WifiOff,
-  Loader2,
-} from "lucide-react";
+import { MessageSquare, Code2, Columns, PanelLeft, Settings, Wifi, WifiOff, Loader2, Activity } from "lucide-react";
 
 interface StatusBarProps {
   view: "chat" | "editor" | "split";
@@ -17,135 +8,64 @@ interface StatusBarProps {
   showExplorer: boolean;
   onToggleExplorer: () => void;
   onOpenSettings: () => void;
+  showTimeline: boolean;
+  onToggleTimeline: () => void;
 }
 
-export function StatusBar({
-  view,
-  onViewChange,
-  showExplorer,
-  onToggleExplorer,
-  onOpenSettings,
-}: StatusBarProps) {
+export function StatusBar({ view, onViewChange, showExplorer, onToggleExplorer, onOpenSettings, showTimeline, onToggleTimeline }: StatusBarProps) {
   const isStreaming = useChatStore((s) => s.isStreaming);
   const isLoading = useChatStore((s) => s.isLoading);
   const error = useChatStore((s) => s.error);
-  const activeConversationId = useChatStore((s) => s.activeConversationId);
   const conversations = useChatStore((s) => s.conversations);
+  const activeId = useChatStore((s) => s.activeConversationId);
   const setMode = useChatStore((s) => s.setMode);
 
-  const activeConv = conversations.find((c) => c.id === activeConversationId);
+  const activeConv = conversations.find((c) => c.id === activeId);
   const currentMode = activeConv?.mode || "chat";
-
   const isConnected = !error;
 
   return (
-    <div className="h-8 px-3 flex items-center justify-between bg-surface-100 dark:bg-surface-900 border-t border-surface-200 dark:border-surface-800 text-xs text-surface-500 dark:text-surface-400 select-none">
-      {/* Left */}
-      <div className="flex items-center gap-2">
-        <button
-          onClick={onToggleExplorer}
-          className={cn(
-            "flex items-center gap-1 px-2 py-1 rounded hover:bg-surface-200 dark:hover:bg-surface-800 transition-colors",
-            showExplorer && "text-codi-600 dark:text-codi-400"
-          )}
-          title="Toggle Explorer"
-        >
-          <PanelLeft size={14} />
+    <div className="h-7 px-2 flex items-center justify-between bg-codi-500 text-white text-xxs select-none shrink-0">
+      <div className="flex items-center gap-0.5">
+        <button onClick={onToggleExplorer}
+          className={cn("px-1.5 py-0.5 rounded hover:bg-white/10 transition-colors flex items-center gap-1",
+            showExplorer && "bg-white/15")}>
+          <PanelLeft size={12} />
         </button>
-
-        <div className="w-px h-4 bg-surface-300 dark:bg-surface-700" />
-
-        {/* View Toggle */}
-        <button
-          onClick={() => onViewChange("chat")}
-          className={cn(
-            "px-2 py-1 rounded hover:bg-surface-200 dark:hover:bg-surface-800 transition-colors",
-            view === "chat" && "text-codi-600 dark:text-codi-400"
-          )}
-          title="Chat Only"
-        >
-          <MessageSquare size={14} />
+        <div className="flex rounded overflow-hidden ml-1">
+          {(["chat", "split", "editor"] as const).map((v) => (
+            <button key={v} onClick={() => onViewChange(v)}
+              className={cn("px-2 py-0.5 hover:bg-white/10 transition-colors capitalize",
+                view === v && "bg-white/15")}>
+              {v}
+            </button>
+          ))}
+        </div>
+        <span className="w-px h-3 bg-white/20 mx-1" />
+        <button onClick={() => activeId && setMode(currentMode === "chat" ? "agent" : "chat")}
+          className={cn("px-1.5 py-0.5 rounded hover:bg-white/10 transition-colors flex items-center gap-1",
+            currentMode === "agent" && "bg-amber-400/30")}>
+          {currentMode === "agent" ? "Agent" : "Chat"}
         </button>
-        <button
-          onClick={() => onViewChange("split")}
-          className={cn(
-            "px-2 py-1 rounded hover:bg-surface-200 dark:hover:bg-surface-800 transition-colors",
-            view === "split" && "text-codi-600 dark:text-codi-400"
-          )}
-          title="Split View"
-        >
-          <Columns size={14} />
-        </button>
-        <button
-          onClick={() => onViewChange("editor")}
-          className={cn(
-            "px-2 py-1 rounded hover:bg-surface-200 dark:hover:bg-surface-800 transition-colors",
-            view === "editor" && "text-codi-600 dark:text-codi-400"
-          )}
-          title="Editor Only"
-        >
-          <Code2 size={14} />
+        <button onClick={onToggleTimeline}
+          className={cn("px-1.5 py-0.5 rounded hover:bg-white/10 transition-colors flex items-center gap-1 ml-1",
+            showTimeline && "bg-white/15")}>
+          <Activity size={11} />
+          Timeline
         </button>
       </div>
 
-      {/* Right */}
-      <div className="flex items-center gap-3">
-        {/* Connection Status */}
-        <div className="flex items-center gap-1.5">
-          {isStreaming ? (
-            <Loader2 size={12} className="animate-spin text-codi-500" />
-          ) : isConnected ? (
-            <Wifi size={12} className="text-emerald-500" />
-          ) : (
-            <WifiOff size={12} className="text-red-500" />
-          )}
-          <span
-            className={cn(
-              isConnected
-                ? "text-emerald-600 dark:text-emerald-400"
-                : "text-red-600 dark:text-red-400"
-            )}
-          >
-            {isStreaming
-              ? "Streaming"
-              : isConnected
-              ? "Connected"
-              : "Disconnected"}
+      <div className="flex items-center gap-0.5">
+        {isStreaming || isLoading ? (
+          <span className="flex items-center gap-1 px-1.5"><Loader2 size={10} className="animate-spin" /> Working</span>
+        ) : (
+          <span className="flex items-center gap-1 px-1.5">
+            {isConnected ? <Wifi size={10} /> : <WifiOff size={10} />}
+            CODI 34B
           </span>
-        </div>
-
-        <div className="w-px h-4 bg-surface-300 dark:bg-surface-700" />
-
-        {/* Mode Toggle */}
-        <button
-          onClick={() => {
-            if (activeConversationId) {
-              const newMode = currentMode === "chat" ? "agent" : "chat";
-              setMode(newMode);
-            }
-          }}
-          className={cn(
-            "px-2 py-1 rounded transition-colors font-medium",
-            activeConversationId
-              ? "hover:bg-surface-200 dark:hover:bg-surface-800 cursor-pointer"
-              : "cursor-default",
-            currentMode === "agent"
-              ? "text-amber-500 bg-amber-500/10"
-              : "text-surface-500"
-          )}
-          title={currentMode === "agent" ? "Agent Mode - Click to switch to Chat" : "Chat Mode - Click to switch to Agent"}
-        >
-          {currentMode === "agent" ? "Agent" : "Chat"}
-        </button>
-
-        <div className="w-px h-4 bg-surface-300 dark:bg-surface-700" />
-
-        <button
-          onClick={onOpenSettings}
-          className="px-2 py-1 rounded hover:bg-surface-200 dark:hover:bg-surface-800 transition-colors"
-          title="Settings"
-        >
-          <Settings size={14} />
+        )}
+        <button onClick={onOpenSettings} className="px-1.5 py-0.5 rounded hover:bg-white/10 transition-colors">
+          <Settings size={11} />
         </button>
       </div>
     </div>

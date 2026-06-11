@@ -14,18 +14,12 @@ import {
 } from "lucide-react";
 
 interface SettingsDialogProps {
-  theme: "dark" | "light" | "corporate";
-  onThemeChange: (theme: "dark" | "light" | "corporate") => void;
   onClose: () => void;
 }
 
 type SettingsTab = "model" | "appearance" | "connection" | "storage" | "about";
 
-export function SettingsDialog({
-  theme,
-  onThemeChange,
-  onClose,
-}: SettingsDialogProps) {
+export function SettingsDialog({ onClose }: SettingsDialogProps) {
   const [activeTab, setActiveTab] = useState<SettingsTab>("model");
   const temperature = useChatStore((s) => s.temperature);
   const maxTokens = useChatStore((s) => s.maxTokens);
@@ -167,32 +161,11 @@ export function SettingsDialog({
                 <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
                   Theme
                 </label>
-                <div className="grid grid-cols-3 gap-3">
-                  {(["dark", "light", "corporate"] as const).map((t) => (
-                    <button
-                      key={t}
-                      onClick={() => onThemeChange(t)}
-                      className={cn(
-                        "p-4 rounded-xl border-2 text-center transition-all",
-                        theme === t
-                          ? "border-codi-500 bg-codi-50 dark:bg-codi-950/30"
-                          : "border-surface-200 dark:border-surface-700 hover:border-surface-300"
-                      )}
-                    >
-                      <div
-                        className={cn(
-                          "w-full h-8 rounded-lg mb-2",
-                          t === "dark" && "bg-surface-900",
-                          t === "light" && "bg-surface-100",
-                          t === "corporate" &&
-                            "bg-gradient-to-r from-codi-600 to-cyan-500"
-                        )}
-                      />
-                      <span className="text-xs font-medium capitalize text-surface-700 dark:text-surface-300">
-                        {t === "corporate" ? "Corporate Blue" : t}
-                      </span>
-                    </button>
-                  ))}
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="p-4 rounded-xl border-2 border-codi-500 bg-codi-950/30 text-center transition-all">
+                    <div className="w-full h-8 rounded-lg mb-2 bg-surface-900" />
+                    <span className="text-xs font-medium text-surface-300">CODI Dark</span>
+                  </div>
                 </div>
               </div>
             )}

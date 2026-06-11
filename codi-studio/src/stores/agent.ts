@@ -19,8 +19,11 @@ export type AgentActionStatus =
 
 export interface AgentAction {
   id: string;
-  type: AgentActionType;
-  description: string;
+  type?: AgentActionType;
+  tool?: string;
+  params?: Record<string, any>;
+  result?: Record<string, any> | null;
+  description?: string;
   path?: string;
   content?: string;
   status: AgentActionStatus;
@@ -31,6 +34,7 @@ interface AgentState {
   actions: AgentAction[];
   autoApprove: boolean;
   isExecuting: boolean;
+  workspace: string;
 
   addAction: (action: Omit<AgentAction, "id" | "status" | "timestamp">) => string;
   updateAction: (id: string, updates: Partial<AgentAction>) => void;
@@ -76,13 +80,14 @@ export const useAgentStore = create<AgentState>((set, get) => ({
   actions: [],
   autoApprove: false,
   isExecuting: false,
+  workspace: "",
 
-  addAction: (action) => {
-    const id = generateId();
+  addAction: (action: Partial<AgentAction> & { id?: string }) => {
+    const id = action.id || generateId();
     const newAction: AgentAction = {
       ...action,
       id,
-      status: "pending",
+      status: action.status || "pending",
       timestamp: Date.now(),
     };
 
@@ -153,4 +158,11 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 
   setAutoApprove: (autoApprove) => set({ autoApprove }),
   clearActions: () => set({ actions: [], isExecuting: false }),
+  setActionResult: (id: string, result: Record<string, any> | null) => {
+    set((state) => ({
+      actions: state.actions.map((a) =>
+        a.id === id ? { ...a, result, status: result?.success ? "done" as const : "error" as const } : a
+      ),
+    }));
+  },
 }));

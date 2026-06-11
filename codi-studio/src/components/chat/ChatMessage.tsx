@@ -1,20 +1,10 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import type { Message, ContentPart } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
-import {
-  User,
-  Bot,
-  Copy,
-  Check,
-  Wand2,
-  RefreshCw,
-  Sparkles,
-  FileCode,
-  Terminal,
-} from "lucide-react";
+import { Bot, Copy, Check, ChevronDown, ChevronUp } from "lucide-react";
 
 interface ChatMessageProps {
   message: Message;
@@ -22,8 +12,8 @@ interface ChatMessageProps {
 
 export function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === "user";
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const [isHovered, setIsHovered] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
+  const codeBlockRefs = useRef<Map<number, string>>(new Map());
 
   const getText = () => {
     return message.content
@@ -41,109 +31,68 @@ export function ChatMessage({ message }: ChatMessageProps) {
   const text = getText();
   const images = getImages();
 
-  const handleCopy = (text: string, index: number) => {
-    navigator.clipboard.writeText(text);
-    setCopiedIndex(index);
-    setTimeout(() => setCopiedIndex(null), 2000);
+  const handleCopy = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopied(code);
+    setTimeout(() => setCopied(null), 2000);
   };
 
-  const extractCodeBlocks = (md: string) => {
-    const regex = /```(\w*)\n([\s\S]*?)```/g;
-    const blocks: { lang: string; code: string }[] = [];
-    let match;
-    while ((match = regex.exec(md)) !== null) {
-      blocks.push({ lang: match[1] || "text", code: match[2] });
-    }
-    return blocks;
-  };
-
-  const codeBlocks = !isUser ? extractCodeBlocks(text) : [];
+  if (!text && images.length === 0) return null;
 
   return (
-    <div
-      className={cn(
-        "group px-6 py-4 hover:bg-surface-50/50 dark:hover:bg-surface-900/30 transition-colors",
-        isUser ? "bg-surface-50/30 dark:bg-surface-900/20" : ""
-      )}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <div className="max-w-4xl mx-auto flex gap-4">
-        {/* Avatar */}
-        <div
-          className={cn(
-            "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-1",
-            isUser
-              ? "bg-surface-200 dark:bg-surface-800"
-              : "bg-codi-600"
-          )}
-        >
-          {isUser ? (
-            <User size={16} className="text-surface-600 dark:text-surface-400" />
-          ) : (
-            <Bot size={16} className="text-white" />
-          )}
+    <div className={cn("px-4 py-3", isUser ? "bg-surface-925/50" : "")}>
+      <div className="flex gap-3 max-w-full">
+        <div className={cn(
+          "w-6 h-6 rounded flex items-center justify-center shrink-0 mt-0.5",
+          isUser ? "bg-surface-700 text-surface-300 text-xxs font-bold" : "bg-codi-500/20 text-codi-400"
+        )}>
+          {isUser ? "U" : <Bot size={13} />}
         </div>
 
-        {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className="text-xs font-medium text-surface-400 mb-1">
-            {isUser ? "You" : "CODI"}
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="text-xs font-medium text-surface-400">
+              {isUser ? "You" : "CODI"}
+            </span>
           </div>
 
-          {/* Images */}
           {images.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-3">
+            <div className="flex flex-wrap gap-2 mb-2">
               {images.map((img, i) => (
-                <img
-                  key={i}
-                  src={img.image_url.url}
-                  alt={`Uploaded ${i + 1}`}
-                  className="max-w-xs max-h-48 rounded-lg border border-surface-200 dark:border-surface-700"
-                />
+                <img key={i} src={img.image_url.url} alt={`Upload ${i + 1}`}
+                  className="max-w-[200px] max-h-[150px] object-cover rounded border border-surface-850" />
               ))}
             </div>
           )}
 
-          {/* Text + Code Blocks */}
           {text && !isUser ? (
-            <div className="prose prose-sm dark:prose-invert max-w-none">
+            <div className="codi-prose">
               <ReactMarkdown
                 components={{
                   code({ className, children, ...props }) {
                     const match = /language-(\w+)/.exec(className || "");
                     const codeStr = String(children).replace(/\n$/, "");
+                    const blockKey = codeStr.slice(0, 40);
 
                     if (match) {
+                      const isCopied = copied === blockKey;
                       return (
-                        <div className="relative group/code my-3">
-                          <div className="flex items-center justify-between px-4 py-1.5 bg-surface-800 dark:bg-surface-900 rounded-t-lg border-b border-surface-700">
-                            <span className="text-xs text-surface-400">
-                              {match[1]}
-                            </span>
+                        <div className="relative group/code my-2 rounded-lg overflow-hidden border border-surface-850">
+                          <div className="flex items-center justify-between px-3 py-1.5 bg-surface-900">
+                            <span className="text-xxs text-surface-500 uppercase tracking-wider">{match[1]}</span>
                             <button
-                              onClick={() => handleCopy(codeStr, codeBlocks.indexOf({ lang: match[1], code: codeStr }))}
-                              className="flex items-center gap-1 text-xs text-surface-400 hover:text-surface-200 transition-colors"
+                              onClick={() => handleCopy(blockKey)}
+                              className="flex items-center gap-1 text-xxs text-surface-500 hover:text-surface-300 transition-colors"
                             >
-                              {copiedIndex === codeBlocks.indexOf({ lang: match[1], code: codeStr }) ? (
-                                <Check size={12} />
-                              ) : (
-                                <Copy size={12} />
-                              )}
-                              {copiedIndex === codeBlocks.indexOf({ lang: match[1], code: codeStr })
-                                ? "Copied"
-                                : "Copy"}
+                              {isCopied ? <Check size={11} /> : <Copy size={11} />}
+                              {isCopied ? "Copied" : "Copy"}
                             </button>
                           </div>
                           <SyntaxHighlighter
                             style={oneDark}
                             language={match[1]}
                             PreTag="div"
-                            customStyle={{
-                              margin: 0,
-                              borderRadius: "0 0 0.5rem 0.5rem",
-                              fontSize: "0.85rem",
-                            }}
+                            customStyle={{ margin: 0, borderRadius: 0, fontSize: "0.8125rem" }}
                           >
                             {codeStr}
                           </SyntaxHighlighter>
@@ -152,13 +101,13 @@ export function ChatMessage({ message }: ChatMessageProps) {
                     }
 
                     return (
-                      <code
-                        className="px-1.5 py-0.5 rounded bg-surface-100 dark:bg-surface-800 text-codi-600 dark:text-codi-400 text-sm font-mono"
-                        {...props}
-                      >
+                      <code className="bg-surface-800 text-codi-300 px-1 py-0.5 rounded text-xs" {...props}>
                         {children}
                       </code>
                     );
+                  },
+                  pre({ children }) {
+                    return <>{children}</>;
                   },
                 }}
               >
@@ -166,38 +115,10 @@ export function ChatMessage({ message }: ChatMessageProps) {
               </ReactMarkdown>
             </div>
           ) : (
-            <div className="text-sm text-surface-900 dark:text-surface-100 whitespace-pre-wrap">
-              {text}
-            </div>
-          )}
-
-          {/* Quick Actions (non-user messages) */}
-          {!isUser && text && isHovered && (
-            <div className="flex items-center gap-1 mt-2 pt-2 border-t border-surface-100 dark:border-surface-800">
-              <QuickActionButton icon={Wand2} label="Improve" />
-              <QuickActionButton icon={RefreshCw} label="Simplify" />
-              <QuickActionButton icon={Sparkles} label="Optimize" />
-              <QuickActionButton icon={FileCode} label="Explain" />
-              <QuickActionButton icon={Terminal} label="Run" />
-            </div>
+            <p className="text-sm text-surface-200 whitespace-pre-wrap break-words leading-relaxed">{text}</p>
           )}
         </div>
       </div>
     </div>
-  );
-}
-
-function QuickActionButton({
-  icon: Icon,
-  label,
-}: {
-  icon: React.ElementType;
-  label: string;
-}) {
-  return (
-    <button className="flex items-center gap-1 px-2 py-1 text-xs text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 rounded transition-all">
-      <Icon size={12} />
-      {label}
-    </button>
   );
 }
