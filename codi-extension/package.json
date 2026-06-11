@@ -116,7 +116,7 @@
       "properties": {
         "codi.apiUrl": {
           "type": "string",
-          "default": "https://bn4vpd34sgt7cg.api.runpod.ai",
+          "default": "https://bq4k3y1q9e6tds.api.runpod.ai",
           "description": "CODI Core API URL"
         },
         "codi.temperature": {

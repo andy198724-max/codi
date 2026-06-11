@@ -32,7 +32,7 @@ export class CodiApi {
 
     const response = await fetch(`${this.baseUrl}/v1/chat/completions`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer codi-secret-key-2026" },
       body: JSON.stringify({
         model: "codi-llava",
         messages,
@@ -62,7 +62,7 @@ export class CodiApi {
 
     const response = await fetch(`${this.baseUrl}/v1/chat/completions`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer codi-secret-key-2026" },
       body: JSON.stringify({
         model: "codi-llava",
         messages,

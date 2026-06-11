@@ -1,5 +1,3 @@
-import sys; print(">>> PYTHON STARTED <<<", flush=True)
-
 import os
 import json
 import time
@@ -9,19 +7,24 @@ import threading
 from typing import List, Dict, Any, Optional, AsyncGenerator
 from pathlib import Path
 
-print(">>> stdlib imports ok", flush=True)
-
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 import yaml
 
-print(">>> fastapi/pydantic imports ok", flush=True)
-
 logger = logging.getLogger("codi.server")
 
-app = FastAPI(title="CODI API", version="1.0.0", description="LLaVA inference API")
+API_KEY = os.environ.get("CODI_API_KEY", "codi-secret-key-2026")
+
+_rate_counter: Dict[int, List[float]] = {}
+_rate_lock = threading.Lock()
+
+RATE_LIMIT_WINDOW = 60
+RATE_LIMIT_MAX = 100
+RATE_LIMIT_TOKENS = 200000
+
+app = FastAPI(title="CODI API", version="2.0.0", description="LLaVA inference API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -34,9 +37,50 @@ app.add_middleware(
 engine = None
 _model_ready = threading.Event()
 _server_errors = []
-_init_started = False
 
-logger.info("CODI server module loaded, starting on port %s", os.environ.get("PORT", "8000"))
+logger.info("CODI server v2 starting on port %s", os.environ.get("PORT", "8000"))
+
+
+def _check_api_key(request: Request):
+    if request.url.path in ("/ping", "/debug", "/health", "/ready"):
+        return
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Bearer ") or auth.split(" ", 1)[1] != API_KEY:
+        raise HTTPException(401, "Invalid or missing API key. Use Bearer <key>")
+
+
+def _check_rate_limit(request: Request):
+    tokens = 0
+    if request.url.path == "/v1/chat/completions" and request.method == "POST":
+        try:
+            body = request.state.body if hasattr(request.state, "body") else {}
+            tokens = sum(len(json.dumps(m.get("content", ""), ensure_ascii=False)) // 4
+                         for m in body.get("messages", []))
+        except Exception:
+            pass
+    now = time.time()
+    key = hash(request.client.host) if request.client else 0
+    with _rate_lock:
+        times = [t for t in _rate_counter.get(key, []) if now - t < RATE_LIMIT_WINDOW]
+        times.append(now)
+        _rate_counter[key] = times
+        if len(times) > RATE_LIMIT_MAX:
+            raise HTTPException(429, f"Rate limit: {RATE_LIMIT_MAX} req/min. Espera un momento.")
+        if tokens > RATE_LIMIT_TOKENS:
+            raise HTTPException(400, f"Request too large: max {RATE_LIMIT_TOKENS} tokens estimados.")
+
+
+@app.middleware("http")
+async def api_key_middleware(request: Request, call_next):
+    _check_api_key(request)
+    if request.url.path == "/v1/chat/completions":
+        try:
+            body_raw = await request.body()
+            request.state.body = json.loads(body_raw) if body_raw else {}
+        except Exception:
+            request.state.body = {}
+        _check_rate_limit(request)
+    return await call_next(request)
 
 
 class ChatMessage(BaseModel):
@@ -47,11 +91,11 @@ class ChatMessage(BaseModel):
 class ChatCompletionRequest(BaseModel):
     model: str = "codi-llava"
     messages: List[ChatMessage]
-    temperature: float = 0.7
-    max_tokens: int = 8192
+    temperature: float = 0.1
+    max_tokens: int = 131072
     top_p: float = 0.95
     stream: bool = False
-    max_context: Optional[int] = 8192
+    max_context: Optional[int] = 32768
 
 
 class ModelInfo(BaseModel):
@@ -69,22 +113,18 @@ class ModelList(BaseModel):
 
 def init_engine():
     global engine
-    print(">>> init_engine started", flush=True)
     try:
-        print(">>> importing engine...", flush=True)
         from inference.engine import CodiInferenceEngine
-        print(">>> engine imported ok", flush=True)
         logger.info("Initializing engine (may download model from R2)...")
         config_path = Path(__file__).resolve().parent.parent / "config" / "model_config.yaml"
         config = {}
         if config_path.exists():
             with open(config_path) as f:
                 config = yaml.safe_load(f) or {}
-
         try:
             engine = CodiInferenceEngine(
                 model_path=os.environ.get("CODI_MODEL_PATH"),
-                max_context=config.get("model", {}).get("context_window", 8192),
+                max_context=config.get("model", {}).get("context_window", 32768),
             )
         except Exception as e:
             logger.error(f"Engine initialization failed: {e}")
@@ -107,8 +147,6 @@ def init_engine():
 
 @app.on_event("startup")
 async def startup():
-    global _init_started
-    _init_started = True
     thread = threading.Thread(target=init_engine, daemon=True)
     thread.start()
     logger.info("Engine initialization started in background")
@@ -130,32 +168,25 @@ async def health():
 
 @app.get("/debug")
 async def debug():
-    import os as _os
     info = {
         "engine_created": engine is not None,
-        "model_ready": _model_ready.is_set(),
-        "model_path": engine.model_path if engine else "N/A",
-        "init_started": _init_started,
+        "has_model": engine.model is not None if engine else False,
     }
     if engine:
-        info["has_model"] = engine.model is not None
-        info["has_processor"] = engine.processor is not None
-        info["r2_enabled"] = engine.r2_config.get("enabled", False) if hasattr(engine, "r2_config") else "unknown"
         cache_dir = Path(engine.model_path) if engine.model_path else None
         if cache_dir and cache_dir.exists():
-            items = sorted([p.name for p in cache_dir.iterdir()]) if cache_dir.is_dir() else []
-            info["cache_files"] = items[:30]
-            info["cache_file_count"] = len(items)
+            info["cache_file_count"] = len(list(cache_dir.iterdir())) if cache_dir.is_dir() else 0
         else:
-            info["cache_files"] = []
+            info["cache_file_count"] = 0
         info["errors"] = getattr(engine, "_init_errors", [])
-    info["server_errors"] = _server_errors
+    else:
+        info["cache_file_count"] = 0
+        info["errors"] = _server_errors
     return info
 
 
 @app.get("/ping")
 async def ping():
-    logger.info("Ping received")
     return {"status": "ok"}
 
 
@@ -235,9 +266,7 @@ async def chat_completions(request: ChatCompletionRequest):
 async def stream_response(messages: List[Dict], request: ChatCompletionRequest):
     response_id = f"chatcmpl-{int(time.time())}"
     created = int(time.time())
-
     yield f"data: {json.dumps({'id': response_id, 'object': 'chat.completion.chunk', 'created': created, 'model': request.model, 'choices': [{'index': 0, 'delta': {'role': 'assistant', 'content': ''}, 'finish_reason': None}]})}\n\n"
-
     async for chunk in engine.generate(
         messages,
         temperature=request.temperature,
@@ -246,15 +275,11 @@ async def stream_response(messages: List[Dict], request: ChatCompletionRequest):
         stream=True,
     ):
         yield f"data: {json.dumps({'id': response_id, 'object': 'chat.completion.chunk', 'created': created, 'model': request.model, 'choices': [{'index': 0, 'delta': {'content': chunk}, 'finish_reason': None}]})}\n\n"
-
     yield f"data: {json.dumps({'id': response_id, 'object': 'chat.completion.chunk', 'created': created, 'model': request.model, 'choices': [{'index': 0, 'delta': {}, 'finish_reason': 'stop'}]})}\n\n"
     yield "data: [DONE]\n\n"
 
 
-print(">>> module loaded, entering main", flush=True)
-
 if __name__ == "__main__":
-    print(">>> in __main__, importing uvicorn", flush=True)
     import uvicorn
     config_path = Path(__file__).resolve().parent.parent / "config" / "model_config.yaml"
     host = os.environ.get("CODI_API_HOST", "0.0.0.0")

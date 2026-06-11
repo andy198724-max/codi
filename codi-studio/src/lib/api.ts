@@ -29,7 +29,7 @@ export interface ChatResponse {
 }
 
 export class CodiApi {
-  private baseUrl: string = "https://bn4vpd34sgt7cg.api.runpod.ai";
+  private baseUrl: string = "https://bq4k3y1q9e6tds.api.runpod.ai";
 
   constructor(baseUrl?: string) {
     if (baseUrl) this.baseUrl = baseUrl;
@@ -45,7 +45,7 @@ export class CodiApi {
   ): Promise<string> {
     const response = await fetch(`${this.baseUrl}/v1/chat/completions`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer codi-secret-key-2026" },
       body: JSON.stringify({
         model: "codi-llava",
         messages,
@@ -71,7 +71,7 @@ export class CodiApi {
   ): Promise<string> {
     const response = await fetch(`${this.baseUrl}/v1/chat/completions`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer codi-secret-key-2026" },
       body: JSON.stringify({
         model: "codi-llava",
         messages,

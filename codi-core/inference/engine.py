@@ -3,8 +3,19 @@ import time
 import os
 import json
 import threading
+import logging
+import hashlib
 from pathlib import Path
 from typing import Optional, List, Dict, Any, AsyncGenerator
+from datetime import datetime
+
+from PIL import Image
+import base64
+import io
+import yaml
+import boto3
+from botocore.config import Config as BotoConfig
+
 from transformers import (
     LlavaNextForConditionalGeneration,
     AutoProcessor,
@@ -12,15 +23,38 @@ from transformers import (
     AutoConfig,
     BitsAndBytesConfig,
 )
-from PIL import Image
-import base64
-import io
-import logging
-import yaml
-import boto3
-from botocore.config import Config as BotoConfig
 
 logger = logging.getLogger("codi.engine")
+_log_file = None
+_log_lock = threading.Lock()
+
+
+def _get_log_path():
+    base = os.environ.get("CODI_LOG_DIR", os.environ.get("CODI_MODEL_PATH", "/model_cache"))
+    return os.path.join(base, "codi.log")
+
+
+def _write_log(entry: dict):
+    global _log_file, _log_lock
+    try:
+        with _log_lock:
+            entry["ts"] = datetime.utcnow().isoformat()
+            path = _get_log_path()
+            with open(path, "a") as f:
+                f.write(json.dumps(entry) + "\n")
+    except Exception:
+        pass
+
+
+def _log_request(prompt: str, images: int, duration: float, tokens: int, error: str = None):
+    _write_log({
+        "type": "request",
+        "prompt_len": len(prompt),
+        "images": images,
+        "duration_s": round(duration, 3),
+        "tokens": tokens,
+        "error": error,
+    })
 
 
 class CodiInferenceEngine:
@@ -28,9 +62,8 @@ class CodiInferenceEngine:
         self,
         model_path: Optional[str] = None,
         device: str = "auto",
-        max_context: int = 8192,
+        max_context: int = 32768,
     ):
-        print(">>> Engine.__init__ start", flush=True)
         self.base_path = Path(__file__).resolve().parent.parent
         self.r2_config = self._load_r2_config()
         self.device = device
@@ -39,22 +72,28 @@ class CodiInferenceEngine:
         self.processor = None
         self.model_path = None
         self._init_errors = []
+        self.system_prompt = self._load_system_prompt()
         try:
-            print(">>> resolve_model_path...", flush=True)
             self._resolve_model_path(model_path)
-            print(">>> download_missing_shards...", flush=True)
             self._download_missing_shards()
-            print(">>> load_processor...", flush=True)
             self._load_processor()
-            print(">>> load_model...", flush=True)
             self._load_model()
-            print(">>> init complete", flush=True)
         except Exception as e:
-            print(f">>> init ERROR: {e}", flush=True)
             self._init_errors.append(f"init: {e}")
             logger.warning(f"Model not available: {e}")
             self.model = None
             self.processor = None
+
+    def _load_system_prompt(self) -> str:
+        config_path = self.base_path / "config" / "model_config.yaml"
+        if config_path.exists():
+            with open(config_path) as f:
+                config = yaml.safe_load(f) or {}
+            return config.get("model", {}).get(
+                "system_prompt",
+                "Eres CODI, asistente de IA para programacion."
+            )
+        return ""
 
     def _load_r2_config(self) -> dict:
         cfg = {}
@@ -112,25 +151,6 @@ class CodiInferenceEngine:
                 retries={"max_attempts": 2},
             ),
         )
-
-    def _r2_objects(self):
-        cfg = self.r2_config
-        s3 = self._get_s3_client()
-        if not s3:
-            return []
-        bucket = cfg.get("bucket", "codi-models")
-        prefix = cfg.get("model_path", "llava-v1.6-34b-hf")
-        paginator = s3.get_paginator("list_objects_v2")
-        pages = paginator.paginate(Bucket=bucket, Prefix=f"{prefix}/")
-        objects = []
-        for page in pages:
-            for obj in page.get("Contents", []):
-                key = obj["Key"]
-                rel = key[len(prefix):].lstrip("/")
-                if not rel or rel.endswith(".aria2"):
-                    continue
-                objects.append((rel, obj["Size"]))
-        return objects
 
     def _download_missing_shards(self):
         if not self.model_path:
@@ -208,7 +228,6 @@ class CodiInferenceEngine:
             "trust_remote_code": True,
         }
         use_4bit = os.environ.get("CODI_LOAD_4BIT", "false").lower() == "true"
-        use_8bit = os.environ.get("CODI_LOAD_8BIT", "false").lower() == "true"
         if use_4bit:
             kwargs["quantization_config"] = BitsAndBytesConfig(
                 load_in_4bit=True,
@@ -218,7 +237,7 @@ class CodiInferenceEngine:
             )
             kwargs["torch_dtype"] = torch.float16
             logger.info("Using 4-bit quantization")
-        elif use_8bit:
+        elif os.environ.get("CODI_LOAD_8BIT", "false").lower() == "true":
             kwargs["quantization_config"] = BitsAndBytesConfig(load_in_8bit=True)
             kwargs["torch_dtype"] = torch.float16
             logger.info("Using 8-bit quantization")
@@ -247,18 +266,17 @@ class CodiInferenceEngine:
             (Path(self.model_path) / f).exists()
             for f in ["config.json", "model.safetensors.index.json"]
         )
-        if configs_exist:
-            if self.processor is None:
-                try:
-                    self.processor = AutoProcessor.from_pretrained(
-                        self.model_path, trust_remote_code=True
-                    )
-                    logger.info("Processor loaded after config download")
-                except Exception as e:
-                    self._init_errors.append(f"proc_retry: {e}")
-                    logger.warning(f"Processor still unavailable: {e}")
-                    self.model = None
-                    return
+        if configs_exist and self.processor is None:
+            try:
+                self.processor = AutoProcessor.from_pretrained(
+                    self.model_path, trust_remote_code=True
+                )
+                logger.info("Processor loaded after config download")
+            except Exception as e:
+                self._init_errors.append(f"proc_retry: {e}")
+                logger.warning(f"Processor still unavailable: {e}")
+                self.model = None
+                return
         model_dir = Path(self.model_path)
         index_file = model_dir / "model.safetensors.index.json"
         if index_file.exists():
@@ -279,9 +297,9 @@ class CodiInferenceEngine:
                     raise
         if self.r2_config.get("enabled"):
             if index_file.exists():
-                logger.info("Not all shards present — will need to download first")
+                logger.info("Not all shards present - will need to download first")
             else:
-                logger.info("No shard index found — loading config only")
+                logger.info("No shard index found - loading config only")
             try:
                 config = AutoConfig.from_pretrained(self.model_path, trust_remote_code=True)
                 logger.info(f"Model config loaded: {config.model_type}, params: ~34B")
@@ -291,70 +309,122 @@ class CodiInferenceEngine:
         self.model = None
 
     def _process_images(self, images: List[str]) -> List[Image.Image]:
+        MAX_SIZE = 448
         processed = []
         for img_data in images:
-            if img_data.startswith("data:image") or img_data.startswith("data:img"):
-                header, encoded = img_data.split(",", 1)
-                img_bytes = base64.b64decode(encoded)
-            elif img_data.startswith("http"):
-                import requests
-                resp = requests.get(img_data, stream=True)
-                resp.raise_for_status()
-                img_bytes = resp.content
-            elif Path(img_data).exists():
-                with open(img_data, "rb") as f:
-                    img_bytes = f.read()
-            else:
-                try:
-                    img_bytes = base64.b64decode(img_data)
-                except Exception:
-                    raise ValueError(f"Unsupported image format")
-            image = Image.open(io.BytesIO(img_bytes)).convert("RGB")
-            processed.append(image)
+            try:
+                if img_data.startswith("data:image") or img_data.startswith("data:img"):
+                    header, encoded = img_data.split(",", 1)
+                    img_bytes = base64.b64decode(encoded)
+                elif img_data.startswith("http"):
+                    import requests
+                    resp = requests.get(img_data, stream=True, timeout=30)
+                    resp.raise_for_status()
+                    img_bytes = resp.content
+                elif Path(img_data).exists():
+                    with open(img_data, "rb") as f:
+                        img_bytes = f.read()
+                else:
+                    try:
+                        img_bytes = base64.b64decode(img_data)
+                    except Exception:
+                        raise ValueError("Formato de imagen no soportado")
+                image = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+                w, h = image.size
+                if max(w, h) > MAX_SIZE:
+                    ratio = MAX_SIZE / max(w, h)
+                    image = image.resize((int(w * ratio), int(h * ratio)), Image.LANCZOS)
+                processed.append(image)
+            except ValueError as e:
+                processed.append(None)
+                logger.warning(f"Image processing skipped: {e}")
+            except Exception as e:
+                processed.append(None)
+                logger.warning(f"Image error: {type(e).__name__}: {e}")
         return processed
+
+    def _compact_messages(self, messages: List[Dict], max_est_tokens: int = 28000) -> List[Dict]:
+        est = sum(len(json.dumps(m.get("content", ""), ensure_ascii=False)) // 4 for m in messages)
+        if est <= max_est_tokens:
+            return messages
+        keep = []
+        for m in reversed(messages):
+            role = m.get("role", "user")
+            if role in ("system",):
+                keep.insert(0, m)
+            else:
+                keep.insert(0, m)
+            if len(keep) >= 4:
+                break
+        summary = {
+            "role": "system",
+            "content": f"[Conversacion resumida. Solo los ultimos {len(keep)-1} mensajes visibles. "
+                       f"Contexto original truncado por longitud.]"
+        }
+        if messages and messages[0].get("role") == "system":
+            system_msgs = [m for m in messages if m.get("role") == "system"]
+            return system_msgs[:1] + [summary] + keep[len(system_msgs):]
+        return [summary] + keep
 
     async def generate(
         self,
         messages: List[Dict[str, Any]],
-        temperature: float = 0.7,
-        max_tokens: int = 8192,
+        temperature: float = 0.1,
+        max_tokens: int = 131072,
         top_p: float = 0.95,
         stream: bool = False,
     ) -> AsyncGenerator[str, None]:
         if self.model is None:
             raise RuntimeError("Model not loaded")
-        images = []
-        text_messages = []
-        for msg in messages:
+        if self.processor is None:
+            raise RuntimeError("Processor not loaded")
+
+        full_messages = list(messages)
+        if self.system_prompt and (
+            not full_messages or full_messages[0].get("role") != "system"
+        ):
+            full_messages.insert(0, {"role": "system", "content": self.system_prompt})
+
+        pil_images = []
+        lllava_messages = []
+        image_errors = []
+
+        for msg in full_messages:
             content = msg.get("content", "")
-            msg_images = []
+            role = msg.get("role", "user")
+
             if isinstance(content, list):
+                new_parts = []
                 for part in content:
                     if part.get("type") == "image_url":
                         url = part["image_url"]["url"]
-                        msg_images.append(url)
+                        imgs = self._process_images([url])
+                        for img in imgs:
+                            if img is not None:
+                                pil_images.append(img)
+                                new_parts.append({"type": "image"})
+                            else:
+                                image_errors.append("No se pudo procesar una imagen (formato no soportado o corrupta)")
                     elif part.get("type") == "text":
-                        text_messages.append({
-                            "role": msg.get("role", "user"),
-                            "content": part["text"],
-                        })
+                        new_parts.append(part)
+                    elif part.get("type") == "image":
+                        new_parts.append(part)
+                lllava_messages.append({"role": role, "content": new_parts})
             else:
-                text_messages.append({
-                    "role": msg.get("role", "user"),
-                    "content": content,
-                })
-            if msg_images:
-                processed = self._process_images(msg_images)
-                images.extend(processed)
+                lllava_messages.append({"role": role, "content": str(content)})
+
+        lllava_messages = self._compact_messages(llava_messages)
+
         prompt = self.processor.apply_chat_template(
-            text_messages, tokenize=False, add_generation_prompt=True
+            lllava_messages, tokenize=False, add_generation_prompt=True
         )
-        inputs = self.processor(
-            text=prompt,
-            images=images if images else None,
-            return_tensors="pt",
-            padding=True,
-        ).to(self.model.device)
+
+        inputs_kwargs = {"text": prompt, "return_tensors": "pt", "padding": True}
+        if pil_images:
+            inputs_kwargs["images"] = pil_images
+
+        inputs = self.processor(**inputs_kwargs).to(self.model.device)
+
         gen_config = GenerationConfig(
             max_new_tokens=max_tokens,
             temperature=temperature,
@@ -363,22 +433,33 @@ class CodiInferenceEngine:
             pad_token_id=self.processor.tokenizer.pad_token_id,
             eos_token_id=self.processor.tokenizer.eos_token_id,
         )
+
+        start = time.time()
         with torch.no_grad():
             generated = self.model.generate(
                 **inputs,
                 generation_config=gen_config,
             )
+        elapsed = time.time() - start
+
         response = self.processor.tokenizer.decode(
             generated[0][inputs["input_ids"].shape[1]:],
             skip_special_tokens=True,
         )
+
+        out_tokens = generated.shape[1] - inputs["input_ids"].shape[1]
+        _log_request(prompt, len(pil_images), elapsed, out_tokens)
+
+        if image_errors:
+            response = "\n".join(image_errors) + "\n\n" + response
+
         yield response
 
     def generate_sync(
         self,
         messages: List[Dict[str, Any]],
-        temperature: float = 0.7,
-        max_tokens: int = 8192,
+        temperature: float = 0.1,
+        max_tokens: int = 131072,
         top_p: float = 0.95,
     ) -> str:
         result = ""

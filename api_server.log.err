@@ -1,0 +1,5 @@
+INFO:     Started server process [728]
+INFO:     Waiting for application startup.
+Model not available: Unrecognized processing class in D:\PROYECTOS_DIGITALES\Codi\codi-core\models\base. Can't instantiate a processor, a tokenizer, an image processor, a video processor or a feature extractor for this model. Make sure the repository contains the files of at least one of those processing classes.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:11435 (Press CTRL+C to quit)
