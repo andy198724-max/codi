@@ -150,16 +150,64 @@ export const useChatStore = create<ChatState>()(
         set({ isLoading: true, error: null });
 
         try {
-          const response = await api.chat(conv.messages, {
-            temperature,
-            maxTokens,
-          });
+          if (conv.mode === "agent") {
+            const { useAgentStore } = await import("@/stores/agent");
+            const agentStore = useAgentStore.getState();
+            const allMsgs = [...conv.messages, userMsg];
 
-          const assistantMsg: Message = {
-            role: "assistant",
-            content: [{ type: "text", text: response }],
-          };
-          get().addMessage(assistantMsg);
+            const assistantMsg: Message = {
+              role: "assistant",
+              content: [{ type: "text", text: "" }],
+            };
+            get().addMessage(assistantMsg);
+
+            let fullAgentOutput = "";
+
+            await api.agentRun(allMsgs, agentStore.workspace, (event) => {
+              if (event.type === "action") {
+                agentStore.addAction({
+                  id: `action-${Date.now()}-${event.tool}`,
+                  tool: event.tool,
+                  params: event.params,
+                  status: agentStore.autoApprove ? "approved" : "pending",
+                  result: null,
+                  timestamp: Date.now(),
+                });
+
+                if (agentStore.autoApprove) {
+                  setTimeout(() => {
+                    agentStore.approveAction(
+                      `action-${Date.now()}-${event.tool}`
+                    );
+                  }, 100);
+                }
+              } else if (event.type === "result") {
+                const lastAction = agentStore.actions[agentStore.actions.length - 1];
+                if (lastAction) {
+                  agentStore.setActionResult(lastAction.id, event.result);
+                }
+              } else if (event.type === "done" || event.type === "response") {
+                fullAgentOutput = event.message || event.content || "";
+                get().updateLastMessage(fullAgentOutput || "TAREA COMPLETADA");
+              } else if (event.type === "error") {
+                fullAgentOutput = `Error: ${event.message}`;
+                get().updateLastMessage(fullAgentOutput);
+              } else if (event.type === "status") {
+                // status updates - could log to console
+              }
+            }, { temperature, maxTokens });
+          } else {
+            const response = await api.chat(conv.messages, {
+              temperature,
+              maxTokens,
+            });
+
+            const assistantMsg: Message = {
+              role: "assistant",
+              content: [{ type: "text", text: response }],
+            };
+            get().addMessage(assistantMsg);
+          }
         } catch (err) {
           set({
             error:

@@ -30,6 +30,11 @@ export function StatusBar({
   const isLoading = useChatStore((s) => s.isLoading);
   const error = useChatStore((s) => s.error);
   const activeConversationId = useChatStore((s) => s.activeConversationId);
+  const conversations = useChatStore((s) => s.conversations);
+  const setMode = useChatStore((s) => s.setMode);
+
+  const activeConv = conversations.find((c) => c.id === activeConversationId);
+  const currentMode = activeConv?.mode || "chat";
 
   const isConnected = !error;
 
@@ -111,10 +116,27 @@ export function StatusBar({
 
         <div className="w-px h-4 bg-surface-300 dark:bg-surface-700" />
 
-        {/* Mode */}
-        <span className="text-surface-500">
-          {activeConversationId ? "Agent" : "Chat"}
-        </span>
+        {/* Mode Toggle */}
+        <button
+          onClick={() => {
+            if (activeConversationId) {
+              const newMode = currentMode === "chat" ? "agent" : "chat";
+              setMode(newMode);
+            }
+          }}
+          className={cn(
+            "px-2 py-1 rounded transition-colors font-medium",
+            activeConversationId
+              ? "hover:bg-surface-200 dark:hover:bg-surface-800 cursor-pointer"
+              : "cursor-default",
+            currentMode === "agent"
+              ? "text-amber-500 bg-amber-500/10"
+              : "text-surface-500"
+          )}
+          title={currentMode === "agent" ? "Agent Mode - Click to switch to Chat" : "Chat Mode - Click to switch to Agent"}
+        >
+          {currentMode === "agent" ? "Agent" : "Chat"}
+        </button>
 
         <div className="w-px h-4 bg-surface-300 dark:bg-surface-700" />
 

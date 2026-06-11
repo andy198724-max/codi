@@ -30,13 +30,19 @@ export interface ChatResponse {
 
 export class CodiApi {
   private baseUrl: string = "https://bq4k3y1q9e6tds.api.runpod.ai";
+  private authKey: string = "";
 
-  constructor(baseUrl?: string) {
+  constructor(baseUrl?: string, authKey?: string) {
     if (baseUrl) this.baseUrl = baseUrl;
+    if (authKey) this.authKey = authKey;
   }
 
   setBaseUrl(url: string) {
     this.baseUrl = url;
+  }
+
+  setAuthKey(key: string) {
+    this.authKey = key;
   }
 
   async chat(
@@ -45,12 +51,12 @@ export class CodiApi {
   ): Promise<string> {
     const response = await fetch(`${this.baseUrl}/v1/chat/completions`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer codi-secret-key-2026" },
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${this.authKey}` },
       body: JSON.stringify({
         model: "codi-llava",
         messages,
-        temperature: options?.temperature ?? 0.7,
-        max_tokens: options?.maxTokens ?? 8192,
+        temperature: options?.temperature ?? 0.1,
+        max_tokens: options?.maxTokens ?? 131072,
         stream: false,
       }),
     });
@@ -71,12 +77,12 @@ export class CodiApi {
   ): Promise<string> {
     const response = await fetch(`${this.baseUrl}/v1/chat/completions`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer codi-secret-key-2026" },
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${this.authKey}` },
       body: JSON.stringify({
         model: "codi-llava",
         messages,
-        temperature: options?.temperature ?? 0.7,
-        max_tokens: options?.maxTokens ?? 8192,
+        temperature: options?.temperature ?? 0.1,
+        max_tokens: options?.maxTokens ?? 131072,
         stream: true,
       }),
     });
@@ -133,6 +139,54 @@ export class CodiApi {
 
   async setApiUrl(url: string): Promise<void> {
     return await invoke("set_api_url", { url });
+  }
+
+  async agentRun(
+    messages: Message[],
+    workspace: string,
+    onEvent: (event: any) => void,
+    options?: { temperature?: number; maxTokens?: number; maxIterations?: number }
+  ): Promise<void> {
+    const response = await fetch(`${this.baseUrl}/v1/agent/run`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${this.authKey}` },
+      body: JSON.stringify({
+        messages,
+        workspace,
+        temperature: options?.temperature ?? 0.1,
+        max_tokens: options?.maxTokens ?? 4096,
+        max_iterations: options?.maxIterations ?? 50,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Agent API error ${response.status}: ${error}`);
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) throw new Error("No response body");
+
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      const lines = chunk.split("\n").filter((l) => l.startsWith("data: "));
+
+      for (const line of lines) {
+        const data = line.slice(6);
+        if (data === "[DONE]") return;
+        try {
+          const parsed = JSON.parse(data);
+          onEvent(parsed);
+        } catch {
+          // skip parse errors
+        }
+      }
+    }
   }
 }
 

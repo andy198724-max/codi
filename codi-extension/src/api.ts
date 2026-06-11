@@ -16,10 +16,15 @@ interface ChatResponse {
 }
 
 export class CodiApi {
+  private authKey: string = "";
   constructor(private baseUrl: string) {}
 
   setBaseUrl(url: string) {
     this.baseUrl = url;
+  }
+
+  setAuthKey(key: string) {
+    this.authKey = key;
   }
 
   async chat(
@@ -32,7 +37,7 @@ export class CodiApi {
 
     const response = await fetch(`${this.baseUrl}/v1/chat/completions`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer codi-secret-key-2026" },
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${this.authKey}` },
       body: JSON.stringify({
         model: "codi-llava",
         messages,
@@ -62,7 +67,7 @@ export class CodiApi {
 
     const response = await fetch(`${this.baseUrl}/v1/chat/completions`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer codi-secret-key-2026" },
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${this.authKey}` },
       body: JSON.stringify({
         model: "codi-llava",
         messages,

@@ -15,7 +15,7 @@ import yaml
 
 logger = logging.getLogger("codi.server")
 
-app = FastAPI(title="CODI API", version="2.0.0", description="LLaVA inference API")
+app = FastAPI(title="CODI API", version="2.1.0", description="LLaVA inference API + Agent")
 
 app.add_middleware(
     CORSMiddleware,
@@ -230,6 +230,53 @@ async def stream_response(messages: List[Dict], request: ChatCompletionRequest):
         yield f"data: {json.dumps({'id': response_id, 'object': 'chat.completion.chunk', 'created': created, 'model': request.model, 'choices': [{'index': 0, 'delta': {'content': chunk}, 'finish_reason': None}]})}\n\n"
     yield f"data: {json.dumps({'id': response_id, 'object': 'chat.completion.chunk', 'created': created, 'model': request.model, 'choices': [{'index': 0, 'delta': {}, 'finish_reason': 'stop'}]})}\n\n"
     yield "data: [DONE]\n\n"
+
+
+class AgentRequest(BaseModel):
+    messages: List[ChatMessage]
+    workspace: str = "/workspace"
+    temperature: float = 0.1
+    max_tokens: int = 4096
+    max_iterations: int = 50
+
+
+@app.post("/v1/agent/run")
+async def agent_run(request: AgentRequest):
+    if engine is None or engine.model is None:
+        raise HTTPException(503, "Model not loaded")
+    if engine.processor is None:
+        raise HTTPException(503, "Processor not loaded")
+
+    from agent.loop_controller import run_agent
+
+    workspace = request.workspace
+    messages = [m.model_dump() for m in request.messages]
+
+    async def agent_event_stream():
+        async for event in run_agent(
+            engine,
+            messages,
+            workspace,
+            max_iterations=request.max_iterations,
+            temperature=request.temperature,
+            max_tokens=request.max_tokens,
+        ):
+            yield f"data: {json.dumps(event)}\n\n"
+            if event.get("type") == "done":
+                break
+            if event.get("type") == "error":
+                break
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(
+        agent_event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 if __name__ == "__main__":
