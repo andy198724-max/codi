@@ -15,15 +15,6 @@ import yaml
 
 logger = logging.getLogger("codi.server")
 
-API_KEY = os.environ.get("CODI_API_KEY", "codi-secret-key-2026")
-
-_rate_counter: Dict[int, List[float]] = {}
-_rate_lock = threading.Lock()
-
-RATE_LIMIT_WINDOW = 60
-RATE_LIMIT_MAX = 100
-RATE_LIMIT_TOKENS = 200000
-
 app = FastAPI(title="CODI API", version="2.0.0", description="LLaVA inference API")
 
 app.add_middleware(
@@ -39,46 +30,6 @@ _model_ready = threading.Event()
 _server_errors = []
 
 logger.info("CODI server v2 starting on port %s", os.environ.get("PORT", "8000"))
-
-
-def _check_api_key(request: Request):
-    if request.url.path in ("/ping", "/debug", "/health", "/ready"):
-        return
-    auth = request.headers.get("Authorization", "")
-    if not auth.startswith("Bearer ") or auth.split(" ", 1)[1] != API_KEY:
-        raise HTTPException(401, "Invalid or missing API key. Use Bearer <key>")
-
-
-def _check_rate_limit(request: Request):
-    tokens = 0
-    if request.url.path == "/v1/chat/completions" and request.method == "POST":
-        try:
-            body = request.state.body if hasattr(request.state, "body") else {}
-            tokens = sum(len(json.dumps(m.get("content", ""), ensure_ascii=False)) // 4
-                         for m in body.get("messages", []))
-        except Exception:
-            pass
-    now = time.time()
-    key = hash(request.client.host) if request.client else 0
-    with _rate_lock:
-        times = [t for t in _rate_counter.get(key, []) if now - t < RATE_LIMIT_WINDOW]
-        times.append(now)
-        _rate_counter[key] = times
-        if len(times) > RATE_LIMIT_MAX:
-            raise HTTPException(429, f"Rate limit: {RATE_LIMIT_MAX} req/min. Espera un momento.")
-        if tokens > RATE_LIMIT_TOKENS:
-            raise HTTPException(400, f"Request too large: max {RATE_LIMIT_TOKENS} tokens estimados.")
-
-
-@app.middleware("http")
-async def api_key_middleware(request: Request, call_next):
-    if request.url.path not in ("/ping", "/debug", "/health", "/ready", "/v1/models"):
-        auth = request.headers.get("Authorization", "")
-        key = os.environ.get("CODI_API_KEY", "codi-secret-key-2026")
-        if not auth.startswith("Bearer ") or auth.split(" ", 1)[1] != key:
-            raise HTTPException(401, "Invalid API key")
-    response = await call_next(request)
-    return response
 
 
 class ChatMessage(BaseModel):
