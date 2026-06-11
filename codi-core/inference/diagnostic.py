@@ -53,6 +53,16 @@ except Exception as e:
     w(traceback.format_exc())
 w(f"Files in /codi-core: {os.listdir('/codi-core')}")
 
+# Test DNS first
+try:
+    import socket
+    endpoint = f"{os.environ['R2_ACCOUNT_ID']}.r2.cloudflarestorage.com"
+    w(f"\nDNS resolution for {endpoint}...")
+    ip = socket.gethostbyname(endpoint)
+    w(f"  Resolved to {ip}")
+except Exception as e:
+    w(f"DNS FAILED: {e}")
+
 # Try to upload log to R2  
 try:
     w("\nUploading diagnostics to R2...")
@@ -62,9 +72,12 @@ try:
         endpoint_url=f"https://{os.environ['R2_ACCOUNT_ID']}.r2.cloudflarestorage.com",
         aws_access_key_id=os.environ['R2_ACCESS_KEY_ID'],
         aws_secret_access_key=os.environ['R2_SECRET_ACCESS_KEY'],
-        config=BotoConfig(connect_timeout=10, read_timeout=30),
+        config=BotoConfig(connect_timeout=15, read_timeout=60, retries={"max_attempts": 1}),
     )
-    s3.put_object(Bucket=os.environ['R2_BUCKET'], Key="diagnostics.log", Body=log.getvalue())
+    w("  S3 client created")
+    body = log.getvalue()
+    w(f"  Log size: {len(body)} bytes, uploading...")
+    s3.put_object(Bucket=os.environ['R2_BUCKET'], Key="diagnostics.log", Body=body)
     w("Diagnostics uploaded to R2!")
 except Exception as e:
     w(f"Upload failed: {e}")
