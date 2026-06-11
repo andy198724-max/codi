@@ -6,7 +6,7 @@ import threading
 from pathlib import Path
 from typing import Optional, List, Dict, Any, AsyncGenerator
 from transformers import (
-    LlavaForConditionalGeneration,
+    LlavaNextForConditionalGeneration,
     AutoProcessor,
     GenerationConfig,
     AutoConfig,
@@ -268,7 +268,7 @@ class CodiInferenceEngine:
             if all_present:
                 logger.info("Loading model from local files...")
                 try:
-                    self.model = LlavaForConditionalGeneration.from_pretrained(
+                    self.model = LlavaNextForConditionalGeneration.from_pretrained(
                         self.model_path, **self._model_kwargs(),
                     )
                     self.model.eval()
