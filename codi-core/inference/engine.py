@@ -30,6 +30,7 @@ class CodiInferenceEngine:
         device: str = "auto",
         max_context: int = 8192,
     ):
+        print(">>> Engine.__init__ start", flush=True)
         self.base_path = Path(__file__).resolve().parent.parent
         self.r2_config = self._load_r2_config()
         self.device = device
@@ -39,11 +40,17 @@ class CodiInferenceEngine:
         self.model_path = None
         self._init_errors = []
         try:
+            print(">>> resolve_model_path...", flush=True)
             self._resolve_model_path(model_path)
+            print(">>> download_missing_shards...", flush=True)
             self._download_missing_shards()
+            print(">>> load_processor...", flush=True)
             self._load_processor()
+            print(">>> load_model...", flush=True)
             self._load_model()
+            print(">>> init complete", flush=True)
         except Exception as e:
+            print(f">>> init ERROR: {e}", flush=True)
             self._init_errors.append(f"init: {e}")
             logger.warning(f"Model not available: {e}")
             self.model = None

@@ -69,8 +69,11 @@ class ModelList(BaseModel):
 
 def init_engine():
     global engine
+    print(">>> init_engine started", flush=True)
     try:
+        print(">>> importing engine...", flush=True)
         from inference.engine import CodiInferenceEngine
+        print(">>> engine imported ok", flush=True)
         logger.info("Initializing engine (may download model from R2)...")
         config_path = Path(__file__).resolve().parent.parent / "config" / "model_config.yaml"
         config = {}
@@ -127,11 +130,6 @@ async def health():
 
 @app.get("/debug")
 async def debug():
-    global _init_started, engine
-    if engine is None:
-        logger.info("/debug forcing engine init (engine is None)")
-        init_engine()
-        _init_started = True
     import os as _os
     info = {
         "engine_created": engine is not None,
