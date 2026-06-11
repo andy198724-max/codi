@@ -128,8 +128,8 @@ async def health():
 @app.get("/debug")
 async def debug():
     global _init_started, engine
-    if not _init_started and engine is None:
-        logger.info("/debug forcing engine init")
+    if engine is None:
+        logger.info("/debug forcing engine init (engine is None)")
         init_engine()
         _init_started = True
     import os as _os
