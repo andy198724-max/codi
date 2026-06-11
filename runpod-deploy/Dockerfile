@@ -12,6 +12,8 @@ RUN pip install --no-cache-dir torch==2.4.0 torchvision==0.19.0 --index-url http
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+RUN echo "build_6f955f1"
+
 COPY inference/ ./inference/
 COPY config/model_config.yaml ./config/model_config.yaml
 
