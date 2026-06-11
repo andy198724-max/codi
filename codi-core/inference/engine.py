@@ -413,7 +413,7 @@ class CodiInferenceEngine:
             else:
                 lllava_messages.append({"role": role, "content": str(content)})
 
-        lllava_messages = self._compact_messages(llava_messages)
+        lllava_messages = self._compact_messages(lllava_messages)
 
         prompt = self.processor.apply_chat_template(
             lllava_messages, tokenize=False, add_generation_prompt=True
