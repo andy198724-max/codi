@@ -104,8 +104,9 @@ export default function App() {
           />
         </div>
       ) : (
-        <div className="flex-1 flex overflow-hidden">
-          <ActivityBar activeView="explorer" onViewChange={(v) => { if (v === "explorer") setShowExplorer(v => !v); if (v === "settings") setShowSettings(true); }} />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 flex overflow-hidden">
+            <ActivityBar activeView="explorer" onViewChange={(v) => { if (v === "explorer") setShowExplorer(v => !v); if (v === "settings") setShowSettings(true); }} />
           <PanelGroup direction="horizontal" className="flex-1">
 
         {showExplorer && (
@@ -145,8 +146,9 @@ export default function App() {
               </>
             )}
           </PanelGroup>
-        </Panel>
-      </PanelGroup>
+          </Panel>
+        </PanelGroup>
+          </div>
       {showBottomPanel && (
         <div className="h-48 shrink-0">
           <BottomPanel onClose={() => setShowBottomPanel(false)} />
