@@ -5,7 +5,7 @@ import { themeRegistry } from "@/themes/registry";
 import { applyTheme, getCurrentThemeId } from "@/themes/engine";
 
 const STEPS = [
-  { id: "welcome", icon: Zap, title: "Bienvenido a CODI Studio" },
+  { id: "welcome", icon: Zap, title: "Bienvenido a Codi" },
   { id: "theme", icon: Palette, title: "Elige tu tema" },
   { id: "connection", icon: Wifi, title: "Conecta tu API" },
   { id: "ready", icon: Rocket, title: "Todo listo" },
@@ -89,7 +89,7 @@ export function Onboarding({ onComplete }: Props) {
             {step === 0 && (
               <div className="space-y-3 mt-6">
                 <p className="text-sm text-surface-400">
-                  CODI Studio es tu asistente de IA para programacion.
+                  Codi es tu asistente de IA para programacion.
                   Antes de empezar, configuremos algunas cosas.
                 </p>
                 <div className="grid grid-cols-2 gap-3 mt-4">
@@ -189,7 +189,7 @@ export function Onboarding({ onComplete }: Props) {
                   <Check size={32} className="text-emerald-400" />
                 </motion.div>
                 <p className="text-sm text-surface-300">
-                  Todo esta configurado. CODI Studio esta listo para usar.
+                  Todo esta configurado. Codi esta listo para usar.
                 </p>
                 <div className="mt-4 p-3 rounded-lg bg-surface-900/50 border border-surface-800 text-left">
                   <p className="text-xs text-surface-500">
@@ -214,7 +214,7 @@ export function Onboarding({ onComplete }: Props) {
         )}
         <button onClick={handleNext} className="btn-primary flex items-center gap-1">
           {step === STEPS.length - 1 ? (
-            <>Abrir CODI Studio <Rocket size={14} /></>
+            <>Abrir Codi <Rocket size={14} /></>
           ) : (
             <>Siguiente <ChevronRight size={14} /></>
           )}

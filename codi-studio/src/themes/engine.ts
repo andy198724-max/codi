@@ -17,10 +17,10 @@ export interface ThemeDefinition {
   colors: ThemeColors;
 }
 
-let currentThemeId = "codi-dark";
+let currentThemeId = "codi-light";
 
 export function getCurrentThemeId(): string {
-  return localStorage.getItem("codi_theme_id") || "codi-dark";
+  return localStorage.getItem("codi_theme_id") || "codi-light";
 }
 
 export function setCurrentThemeId(id: string) {

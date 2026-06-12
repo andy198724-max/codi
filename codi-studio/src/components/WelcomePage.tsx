@@ -21,7 +21,7 @@ export function WelcomePage({ onOpenProject, onCreateProject }: Props) {
           <div className="w-16 h-16 rounded-2xl bg-codi-500/10 flex items-center justify-center mx-auto mb-4 ring-1 ring-codi-500/20">
             <span className="text-3xl font-bold text-codi-400">C</span>
           </div>
-          <h1 className="text-xl font-semibold text-surface-100 mb-1">CODI Studio</h1>
+          <h1 className="text-xl font-semibold text-surface-100 mb-1">Codi</h1>
           <p className="text-sm text-surface-500">Asistente de IA para programacion</p>
         </div>
 
@@ -69,7 +69,7 @@ export function WelcomePage({ onOpenProject, onCreateProject }: Props) {
 
         {/* Footer */}
         <p className="text-center text-xxs text-surface-700 mt-8">
-          CODI Studio v3.0 · LLaVA-NeXT 34B · 4-bit quantization
+          Codi v3.0 · LLaVA-NeXT 34B · 4-bit quantization
         </p>
       </div>
     </div>

@@ -8,17 +8,18 @@ import { StatusBar } from "@/components/StatusBar";
 import { SettingsDialog } from "@/components/settings/SettingsDialog";
 import { AgentTimeline } from "@/components/agent/AgentTimeline";
 import { SplashScreen } from "@/components/onboarding/SplashScreen";
-import { Onboarding } from "@/components/onboarding/Onboarding";
+import { CustomizePanel } from "@/components/onboarding/CustomizePanel";
 import { MenuBar } from "@/components/MenuBar";
 import { applyTheme, getCurrentThemeId } from "@/themes/engine";
 import { getThemeById } from "@/themes/registry";
 import { WelcomePage } from "@/components/WelcomePage";
 import { CommandPalette, defaultCommands } from "@/components/CommandPalette";
+import { BottomPanel } from "@/components/BottomPanel";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 type View = "chat" | "editor" | "split";
 
-type AppPhase = "splash" | "onboarding" | "main";
+type AppPhase = "splash" | "customize" | "main";
 
 export default function App() {
   const [phase, setPhase] = useState<AppPhase>("splash");
@@ -27,6 +28,7 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showTimeline, setShowTimeline] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showBottomPanel, setShowBottomPanel] = useState(false);
 
   const mode = useChatStore((s) => {
     const conv = s.conversations.find((c) => c.id === s.activeConversationId);
@@ -39,7 +41,7 @@ export default function App() {
 
   useEffect(() => {
     const themeId = getCurrentThemeId();
-    const theme = getThemeById(themeId);
+    const theme = getThemeById(themeId || "codi-light");
     applyTheme(theme);
   }, []);
 
@@ -71,21 +73,14 @@ export default function App() {
   }, []);
 
   if (phase === "splash") {
-    return <SplashScreen onComplete={() => {
-      const done = localStorage.getItem("codi_onboarding_completed");
-      setPhase(done === "true" ? "main" : "onboarding");
-    }} />;
+    return <SplashScreen onComplete={() => setPhase("customize")} />;
   }
 
-  if (phase === "onboarding") {
-    return (
-      <Onboarding
-        onComplete={() => {
-          setPhase("main");
-          window.location.reload();
-        }}
-      />
-    );
+  if (phase === "customize") {
+    return <CustomizePanel onComplete={() => {
+      setPhase("main");
+      window.location.reload();
+    }} />;
   }
 
   return (
@@ -142,7 +137,11 @@ export default function App() {
           </PanelGroup>
         </Panel>
       </PanelGroup>
-
+      {showBottomPanel && (
+        <div className="h-48 shrink-0">
+          <BottomPanel onClose={() => setShowBottomPanel(false)} />
+        </div>
+      )}
       <StatusBar
         view={view}
         onViewChange={setView}
@@ -151,6 +150,8 @@ export default function App() {
         onOpenSettings={() => setShowSettings(true)}
         showTimeline={showTimeline}
         onToggleTimeline={() => setShowTimeline((v) => !v)}
+        showBottomPanel={showBottomPanel}
+        onToggleBottomPanel={() => setShowBottomPanel((v) => !v)}
       />
         </>
       )}

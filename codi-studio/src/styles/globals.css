@@ -4,11 +4,18 @@
 
 @layer base {
   * {
-    border-color: theme("colors.surface.850");
+    border-color: var(--s-850, #e5e5e5);
   }
   body {
-    @apply bg-surface-950 text-surface-200 antialiased;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
     font-size: 13px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "cv01", "cv02", "cv03";
+    @apply bg-surface-950 text-surface-200;
   }
   ::selection {
     background: var(--a-500, #f09000);
@@ -22,10 +29,11 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-surface-700 rounded-full;
+    background: var(--s-300, #d4d4d4);
+    border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-surface-600;
+    background: var(--s-400, #a3a3a3);
   }
 }
 

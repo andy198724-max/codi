@@ -75,7 +75,7 @@ export function MenuBar() {
         { label: "Atajos de Teclado", shortcut: "Ctrl+K Ctrl+S", action: () => { setOpenMenu(null); } },
         { label: "Documentacion", action: () => { setOpenMenu(null); } },
         { divider: true },
-        { label: "Acerca de CODI Studio", action: () => { setOpenMenu(null); } },
+        { label: "Acerca de Codi", action: () => { setOpenMenu(null); } },
       ],
     },
   ];
@@ -119,7 +119,7 @@ export function MenuBar() {
         ))}
       </div>
       <div className="flex-1 drag-region" />
-      <span className="text-xxs text-surface-600 no-drag">CODI Studio v3.0</span>
+      <span className="text-xxs text-surface-600 no-drag">Codi v3.0</span>
     </div>
   );
 }

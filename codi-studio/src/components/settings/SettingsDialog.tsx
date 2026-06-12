@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useChatStore } from "@/stores/chat";
 import { cn } from "@/lib/utils";
@@ -325,7 +325,7 @@ export function SettingsDialog({ onClose }: SettingsDialogProps) {
               <div className="space-y-4 text-sm">
                 <div>
                   <h3 className="font-medium text-surface-900 dark:text-surface-100">
-                    CODI Studio
+                    Codi
                   </h3>
                   <p className="text-surface-400 text-xs mt-1">Version 1.0.0</p>
                 </div>

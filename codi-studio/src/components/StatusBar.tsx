@@ -1,6 +1,6 @@
 import { useChatStore } from "@/stores/chat";
 import { cn } from "@/lib/utils";
-import { MessageSquare, Code2, Columns, PanelLeft, Settings, Wifi, WifiOff, Loader2, Activity } from "lucide-react";
+import { MessageSquare, Code2, Columns, PanelLeft, Settings, Wifi, WifiOff, Loader2, Activity, Terminal } from "lucide-react";
 
 interface StatusBarProps {
   view: "chat" | "editor" | "split";
@@ -10,9 +10,11 @@ interface StatusBarProps {
   onOpenSettings: () => void;
   showTimeline: boolean;
   onToggleTimeline: () => void;
+  showBottomPanel: boolean;
+  onToggleBottomPanel: () => void;
 }
 
-export function StatusBar({ view, onViewChange, showExplorer, onToggleExplorer, onOpenSettings, showTimeline, onToggleTimeline }: StatusBarProps) {
+export function StatusBar({ view, onViewChange, showExplorer, onToggleExplorer, onOpenSettings, showTimeline, onToggleTimeline, showBottomPanel, onToggleBottomPanel }: StatusBarProps) {
   const isStreaming = useChatStore((s) => s.isStreaming);
   const isLoading = useChatStore((s) => s.isLoading);
   const error = useChatStore((s) => s.error);
@@ -50,8 +52,12 @@ export function StatusBar({ view, onViewChange, showExplorer, onToggleExplorer, 
         <button onClick={onToggleTimeline}
           className={cn("px-1.5 py-0.5 rounded hover:bg-white/10 transition-colors flex items-center gap-1 ml-1",
             showTimeline && "bg-white/15")}>
-          <Activity size={11} />
-          Linea tiempo
+          <Activity size={11} /> L.Tiempo
+        </button>
+        <button onClick={onToggleBottomPanel}
+          className={cn("px-1.5 py-0.5 rounded hover:bg-white/10 transition-colors flex items-center gap-1 ml-1",
+            showBottomPanel && "bg-white/15")}>
+          <Terminal size={11} /> Terminal
         </button>
       </div>
 
@@ -61,7 +67,7 @@ export function StatusBar({ view, onViewChange, showExplorer, onToggleExplorer, 
         ) : (
           <span className="flex items-center gap-1 px-1.5">
             {isConnected ? <Wifi size={10} /> : <WifiOff size={10} />}
-            CODI 34B
+            Codi
           </span>
         )}
         <button onClick={onOpenSettings} className="px-1.5 py-0.5 rounded hover:bg-white/10 transition-colors">

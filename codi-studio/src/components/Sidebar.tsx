@@ -83,7 +83,7 @@ export function Sidebar() {
       {/* Footer */}
       <div className="p-3 border-t border-surface-200 dark:border-surface-800">
         <div className="flex items-center gap-2 text-xs text-surface-400">
-          <span className="flex-1">CODI Studio v1.0</span>
+          <span className="flex-1">Codi v1.0</span>
           <button className="hover:text-surface-600 dark:hover:text-surface-300 transition-colors">
             <Settings size={14} />
           </button>
