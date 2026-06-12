@@ -1,8 +1,9 @@
 import { useProjectStore } from "@/stores/project";
 import { useChatStore } from "@/stores/chat";
 import Editor, { OnMount, OnChange } from "@monaco-editor/react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { EditorTabs, Breadcrumbs } from "./EditorTabs";
 import {
   FileCode,
   Save,
@@ -85,27 +86,19 @@ export function EditorPanel() {
         isFullscreen ? "fixed inset-0 z-50" : "h-full"
       )}
     >
-      {/* Editor Tabs */}
-      <div className="flex items-center px-3 h-10 bg-surface-100 dark:bg-surface-900 border-b border-surface-200 dark:border-surface-800 gap-1">
-        <div className="flex items-center gap-2 px-3 py-1 bg-white dark:bg-surface-800 rounded-t border border-b-0 border-surface-200 dark:border-surface-700 -mb-px">
-          <FileCode size={14} className="text-codi-500" />
-          <span className="text-xs font-medium text-surface-700 dark:text-surface-300">
-            {selectedFilePath.split("\\").pop()}
-          </span>
-          {isDirty && <span className="w-2 h-2 rounded-full bg-amber-500" />}
+      {/* Breadcrumbs + Tabs */}
+      <Breadcrumbs path={selectedFilePath} />
+      <div className="flex items-center px-2 h-8 bg-surface-925 border-b border-surface-850 gap-1">
+        <div className="flex items-center gap-1.5 px-2 py-0.5">
+          <FileCode size={12} className="text-codi-500" />
+          <span className="text-xs text-surface-400">{selectedFilePath.split("\\").pop()}</span>
         </div>
-
         <div className="flex-1" />
-
-        <button onClick={handleSave} className="btn-ghost"                 title="Guardar">
-          <Save size={14} />
+        <button onClick={handleSave} className="btn-ghost p-1" title="Guardar">
+          <Save size={13} />
         </button>
-        <button
-          onClick={() => setIsFullscreen(!isFullscreen)}
-          className="btn-ghost"
-                title="Pantalla completa"
-        >
-          {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+        <button onClick={() => setIsFullscreen(!isFullscreen)} className="btn-ghost p-1" title="Pantalla completa">
+          {isFullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
         </button>
       </div>
 
