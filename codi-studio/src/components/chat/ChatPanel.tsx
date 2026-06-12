@@ -2,7 +2,7 @@ import { useRef, useEffect } from "react";
 import { useChatStore } from "@/stores/chat";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
-import { Loader2 } from "lucide-react";
+import { Loader2, SlidersHorizontal, MessageSquare, Bot } from "lucide-react";
 
 export function ChatPanel() {
   const conversations = useChatStore((s) => s.conversations);
@@ -51,7 +51,18 @@ export function ChatPanel() {
   }
 
   return (
-    <div className="panel h-full">
+    <div className="panel h-full border-l border-surface-850">
+      <div className="flex items-center justify-between px-3 h-9 border-b border-surface-850 shrink-0">
+        <div className="flex items-center gap-2">
+          {mode === "agent" ? <Bot size={14} className="text-codi-400" /> : <MessageSquare size={14} className="text-codi-400" />}
+          <span className="text-xs font-medium text-surface-300">
+            {mode === "agent" ? "Agent" : "Chat"}
+          </span>
+        </div>
+        <button className="btn-ghost p-1" title="Customizations">
+          <SlidersHorizontal size={13} />
+        </button>
+      </div>
       <div className="flex-1 overflow-y-auto" ref={scrollRef}>
         {messages.length === 0 && (
           <div className="flex items-center justify-center h-full text-surface-600 text-sm p-8">

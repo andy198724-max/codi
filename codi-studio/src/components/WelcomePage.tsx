@@ -1,77 +1,72 @@
-import { FolderOpen, GitBranch, Rocket, Code2, Globe, Database, FileText, Terminal } from "lucide-react";
+import { FolderOpen, GitBranch, Monitor, Server } from "lucide-react";
 
 interface Props {
   onOpenProject: () => void;
   onCreateProject: (template: string) => void;
 }
 
-const TEMPLATES = [
-  { id: "react", name: "React App", desc: "Vite + React + TypeScript", icon: Code2 },
-  { id: "next", name: "Next.js", desc: "App Router + Tailwind", icon: Globe },
-  { id: "python", name: "Python API", desc: "FastAPI + SQLAlchemy", icon: Terminal },
-  { id: "empty", name: "Vacio", desc: "Proyecto en blanco", icon: FileText },
-];
+const RECENT_KEY = "codi_recent_projects";
+
+function getRecent(): string[] {
+  try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"); } catch { return []; }
+}
 
 export function WelcomePage({ onOpenProject, onCreateProject }: Props) {
+  const recent = getRecent();
+
   return (
-    <div className="h-full flex flex-col items-center justify-center p-8 select-none">
-      <div className="max-w-2xl w-full">
-        {/* Logo */}
-        <div className="text-center mb-10">
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <img src="/codi-logo.svg" alt="Codi" className="w-12 h-12" />
-            <h1 className="text-2xl font-bold text-surface-100 tracking-tight">Codi</h1>
-          </div>
-          <p className="text-sm text-surface-500">Asistente de IA para programacion</p>
+    <div className="flex-1 flex flex-col items-center justify-center p-8 select-none">
+      <div className="flex-1" />
+      <div className="text-center mb-6">
+        <div className="w-12 h-12 mx-auto mb-4 flex items-center justify-center">
+          <img src="/codi-logo.svg" alt="Codi" className="w-10 h-10" />
         </div>
+        <h2 className="text-lg font-semibold text-surface-200 tracking-tight">Codi</h2>
+      </div>
+      <p className="text-sm text-surface-500 mb-6 text-center max-w-md">
+        Start by opening a folder or connecting to a remote server
+      </p>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-2 gap-3 mb-8">
-          <button
-            onClick={onOpenProject}
-            className="flex items-center gap-3 p-4 rounded-xl border border-surface-800 hover:border-codi-500/40 hover:bg-surface-900/50 transition-all text-left group"
-          >
-            <FolderOpen size={22} className="text-surface-500 group-hover:text-codi-400 transition-colors shrink-0" />
-            <div>
-              <p className="text-sm font-medium text-surface-200">Abrir Carpeta</p>
-              <p className="text-xs text-surface-500 mt-0.5">Explora un proyecto existente</p>
-            </div>
-          </button>
+      <div className="grid grid-cols-2 gap-3 mb-6 w-full max-w-lg">
+        <button
+          onClick={onOpenProject}
+          className="flex flex-col items-center gap-2 p-5 rounded-xl border border-surface-800 hover:border-codi-500/40 hover:bg-surface-900/50 transition-all text-center group"
+        >
+          <FolderOpen size={24} className="text-surface-500 group-hover:text-codi-400 transition-colors" />
+          <p className="text-sm font-medium text-surface-200">Open Folder</p>
+          <p className="text-xs text-surface-600">Browse an existing project</p>
+        </button>
+        <button
+          className="flex flex-col items-center gap-2 p-5 rounded-xl border border-surface-800 hover:border-codi-500/40 hover:bg-surface-900/50 transition-all text-center group opacity-60 cursor-not-allowed"
+        >
+          <Server size={24} className="text-surface-500" />
+          <p className="text-sm font-medium text-surface-200">Connect to Remote</p>
+          <p className="text-xs text-surface-600">SSH or Dev Container</p>
+        </button>
+      </div>
 
-          <button
-            className="flex items-center gap-3 p-4 rounded-xl border border-surface-800 hover:border-codi-500/40 hover:bg-surface-900/50 transition-all text-left group opacity-50 cursor-not-allowed"
-          >
-            <GitBranch size={22} className="text-surface-500 shrink-0" />
-            <div>
-              <p className="text-sm font-medium text-surface-200">Clonar Repositorio</p>
-              <p className="text-xs text-surface-500 mt-0.5">Git clone desde URL</p>
-            </div>
-          </button>
-        </div>
-
-        {/* Templates */}
-        <div>
-          <p className="text-xs font-medium text-surface-500 uppercase tracking-wider mb-3">Nuevo Proyecto</p>
-          <div className="grid grid-cols-4 gap-2">
-            {TEMPLATES.map((t) => (
+      {recent.length > 0 && (
+        <div className="w-full max-w-lg mb-6">
+          <p className="text-xs text-surface-600 uppercase tracking-wider mb-2">Recent Projects</p>
+          <div className="space-y-1">
+            {recent.map((path) => (
               <button
-                key={t.id}
-                onClick={() => onCreateProject(t.id)}
-                className="p-3 rounded-xl border border-surface-800 hover:border-codi-500/40 hover:bg-surface-900/50 transition-all text-center group"
+                key={path}
+                onClick={onOpenProject}
+                className="w-full text-left px-3 py-2 rounded-lg hover:bg-surface-800/50 transition-colors text-sm text-surface-400 hover:text-surface-200 flex items-center gap-2"
               >
-                <t.icon size={20} className="text-surface-500 group-hover:text-codi-400 mx-auto mb-2 transition-colors" />
-                <p className="text-xs font-medium text-surface-300">{t.name}</p>
-                <p className="text-[10px] text-surface-600 mt-0.5">{t.desc}</p>
+                <FolderOpen size={14} className="text-surface-600" />
+                <span className="truncate">{path}</span>
               </button>
             ))}
           </div>
         </div>
+      )}
 
-        {/* Footer */}
-        <p className="text-center text-xxs text-surface-700 mt-8">
-          Codi v3.0 · LLaVA-NeXT 34B · 4-bit quantization
-        </p>
-      </div>
+      <div className="flex-1" />
+      <p className="text-xxs text-surface-700 pb-4">
+        Codi · LLaVA-NeXT 34B
+      </p>
     </div>
   );
 }
