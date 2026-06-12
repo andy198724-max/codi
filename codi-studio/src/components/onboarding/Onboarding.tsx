@@ -1,15 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, ChevronRight, ChevronLeft, Zap, Palette, Wifi, Rocket, FolderOpen, Monitor } from "lucide-react";
-
-const PREVIEW_THEMES = [
-  { id: "codi-dark", name: "CODI Dark", primary: "#f09000", bg: "#1a1b1e", surface: "#252528" },
-  { id: "codi-amber", name: "CODI Ambar", primary: "#f59e0b", bg: "#18181b", surface: "#27272a" },
-  { id: "minimal", name: "Minimal", primary: "#6366f1", bg: "#0a0a0a", surface: "#171717" },
-  { id: "nord", name: "Nord", primary: "#88c0d0", bg: "#2e3440", surface: "#3b4252" },
-  { id: "dracula", name: "Dracula", primary: "#bd93f9", bg: "#282a36", surface: "#44475a" },
-  { id: "solarized", name: "Solarized", primary: "#2aa198", bg: "#002b36", surface: "#073642" },
-];
+import { themeRegistry } from "@/themes/registry";
+import { applyTheme, getCurrentThemeId } from "@/themes/engine";
 
 const STEPS = [
   { id: "welcome", icon: Zap, title: "Bienvenido a CODI Studio" },
@@ -53,7 +46,8 @@ export function Onboarding({ onComplete }: Props) {
   const handleNext = () => {
     if (step === STEPS.length - 1) {
       localStorage.setItem("codi_onboarding_completed", "true");
-      localStorage.setItem("codi_theme", selectedTheme);
+      const t = themeRegistry.find(th => th.id === selectedTheme) || themeRegistry[0];
+      applyTheme(t);
       localStorage.setItem("codi_api_url", apiUrl);
       localStorage.setItem("codi_api_key", apiKey);
       onComplete(selectedTheme, apiUrl);
@@ -120,24 +114,27 @@ export function Onboarding({ onComplete }: Props) {
 
             {/* THEME */}
             {step === 1 && (
-              <div className="grid grid-cols-3 gap-3 mt-6">
-                {PREVIEW_THEMES.map((theme) => (
-                  <button
-                    key={theme.id}
-                    onClick={() => setSelectedTheme(theme.id)}
-                    className={`p-3 rounded-xl border-2 transition-all text-left ${
-                      selectedTheme === theme.id
-                        ? "border-codi-500 ring-2 ring-codi-500/20"
-                        : "border-surface-800 hover:border-surface-700"
-                    }`}
-                  >
-                    <div className="h-10 rounded-md mb-2 flex items-end gap-1 p-1" style={{ backgroundColor: theme.bg }}>
-                      <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: theme.primary }} />
-                      <div className="w-4 h-1 rounded-sm" style={{ backgroundColor: theme.surface }} />
-                    </div>
-                    <p className="text-xs font-medium text-surface-300">{theme.name}</p>
-                  </button>
-                ))}
+              <div className="grid grid-cols-3 gap-2 mt-6 max-h-[300px] overflow-y-auto pr-1">
+                {themeRegistry.slice(0, 9).map((theme) => {
+                  const isActive = selectedTheme === theme.id;
+                  return (
+                    <button
+                      key={theme.id}
+                      onClick={() => setSelectedTheme(theme.id)}
+                      className={`p-2.5 rounded-xl border-2 transition-all text-left ${
+                        isActive
+                          ? "border-codi-500 ring-2 ring-codi-500/20"
+                          : "border-surface-800 hover:border-surface-700"
+                      }`}
+                    >
+                      <div className="h-8 rounded-md mb-1.5 flex items-end gap-1 p-1" style={{ backgroundColor: theme.colors.editor.bg }}>
+                        <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: theme.colors.accent[500] }} />
+                        <div className="w-3 h-1 rounded-sm" style={{ backgroundColor: theme.colors.surface[900] }} />
+                      </div>
+                      <p className="text-[10px] font-medium text-surface-300 leading-tight truncate">{theme.name}</p>
+                    </button>
+                  );
+                })}
               </div>
             )}
 
@@ -196,7 +193,7 @@ export function Onboarding({ onComplete }: Props) {
                 </p>
                 <div className="mt-4 p-3 rounded-lg bg-surface-900/50 border border-surface-800 text-left">
                   <p className="text-xs text-surface-500">
-                    <span className="text-surface-400">Tema:</span> {PREVIEW_THEMES.find((t) => t.id === selectedTheme)?.name}
+                    <span className="text-surface-400">Tema:</span> {themeRegistry.find((t) => t.id === selectedTheme)?.name || selectedTheme}
                   </p>
                   <p className="text-xs text-surface-500 mt-1">
                     <span className="text-surface-400">API:</span> {apiUrl}

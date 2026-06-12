@@ -10,8 +10,10 @@ import { AgentTimeline } from "@/components/agent/AgentTimeline";
 import { SplashScreen } from "@/components/onboarding/SplashScreen";
 import { Onboarding } from "@/components/onboarding/Onboarding";
 import { MenuBar } from "@/components/MenuBar";
-import { applyTheme } from "@/lib/themes";
+import { applyTheme, getCurrentThemeId } from "@/themes/engine";
+import { getThemeById } from "@/themes/registry";
 import { WelcomePage } from "@/components/WelcomePage";
+import { CommandPalette, defaultCommands } from "@/components/CommandPalette";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 type View = "chat" | "editor" | "split";
@@ -27,6 +29,7 @@ export default function App() {
   const [showExplorer, setShowExplorer] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [showTimeline, setShowTimeline] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
 
   const mode = useChatStore((s) => {
     const conv = s.conversations.find((c) => c.id === s.activeConversationId);
@@ -38,10 +41,9 @@ export default function App() {
   const rootPath = useProjectStore((s) => s.rootPath);
 
   useEffect(() => {
-    const root = document.documentElement;
-    root.classList.add("dark");
-    const savedTheme = localStorage.getItem("codi_theme") || "codi-dark";
-    applyTheme(savedTheme);
+    const themeId = getCurrentThemeId();
+    const theme = getThemeById(themeId);
+    applyTheme(theme);
   }, []);
 
   useEffect(() => {
@@ -50,6 +52,8 @@ export default function App() {
       if (mod && e.key === "l") { e.preventDefault(); newConversation(); }
       if (mod && e.key === ",") { e.preventDefault(); setShowSettings(true); }
       if (mod && e.key === "b") { e.preventDefault(); setShowExplorer((v) => !v); }
+      if (mod && e.shiftKey && e.key === "P") { e.preventDefault(); setShowCommandPalette((v) => !v); }
+      if (e.key === "Escape") { setShowCommandPalette(false); }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
@@ -154,6 +158,12 @@ export default function App() {
       {showSettings && (
         <SettingsDialog onClose={() => setShowSettings(false)} />
       )}
+
+      <CommandPalette
+        isOpen={showCommandPalette}
+        onClose={() => setShowCommandPalette(false)}
+        commands={defaultCommands}
+      />
     </div>
   );
 }

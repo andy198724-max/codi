@@ -122,7 +122,7 @@ export function EditorPanel() {
             fontSize: 14,
             fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
             fontLigatures: true,
-            minimap: { enabled: true },
+            minimap: { enabled: false },
             scrollBeyondLastLine: false,
             lineNumbers: "on",
             renderWhitespace: "selection",
@@ -133,6 +133,14 @@ export function EditorPanel() {
             cursorBlinking: "smooth",
             cursorSmoothCaretAnimation: "on",
             padding: { top: 8 },
+            folding: true,
+            guides: { indentation: true, bracketPairs: true },
+            wordWrap: "off",
+            suggest: { showWords: true, showSnippets: true },
+            quickSuggestions: true,
+            suggestOnTriggerCharacters: true,
+            glyphMargin: false,
+            contextmenu: false,
           }}
         />
       </div>

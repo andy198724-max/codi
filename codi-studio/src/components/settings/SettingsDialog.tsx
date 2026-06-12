@@ -12,7 +12,8 @@ import {
   Check,
   Cloud,
 } from "lucide-react";
-import { themes, applyTheme } from "@/lib/themes";
+import { themeRegistry, getThemeById } from "@/themes/registry";
+import { applyTheme, getCurrentThemeId } from "@/themes/engine";
 
 interface SettingsDialogProps {
   onClose: () => void;
@@ -162,24 +163,30 @@ export function SettingsDialog({ onClose }: SettingsDialogProps) {
                 <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
                   Tema
                 </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {Object.values(themes).map((theme) => (
-                    <button
-                      key={theme.id}
-                      onClick={() => applyTheme(theme.id)}
-                      className={`p-3 rounded-xl border-2 transition-all text-left ${
-                        localStorage.getItem("codi_theme") === theme.id || (!localStorage.getItem("codi_theme") && theme.id === "codi-dark")
-                          ? "border-codi-500 ring-2 ring-codi-500/20"
-                          : "border-surface-800 hover:border-surface-700"
-                      }`}
-                    >
-                      <div className="h-10 rounded-md mb-2 flex items-end gap-1 p-1" style={{ backgroundColor: theme.bg }}>
-                        <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: theme.primary }} />
-                        <div className="w-4 h-1 rounded-sm" style={{ backgroundColor: theme.surface }} />
-                      </div>
-                      <p className="text-[10px] font-medium text-surface-300 leading-tight">{theme.name}</p>
-                    </button>
-                  ))}
+                <div className="grid grid-cols-3 gap-2 max-h-[250px] overflow-y-auto pr-1">
+                  {themeRegistry.map((theme) => {
+                    const isActive = getCurrentThemeId() === theme.id;
+                    return (
+                      <button
+                        key={theme.id}
+                        onClick={() => {
+                          const t = getThemeById(theme.id);
+                          applyTheme(t);
+                        }}
+                        className={`p-2 rounded-xl border-2 transition-all text-left ${
+                          isActive
+                            ? "border-codi-500 ring-2 ring-codi-500/20"
+                            : "border-surface-800 hover:border-surface-700"
+                        }`}
+                      >
+                        <div className="h-8 rounded-md mb-1.5 flex items-end gap-1 p-1" style={{ backgroundColor: theme.colors.editor.bg }}>
+                          <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: theme.colors.accent[500] }} />
+                          <div className="w-3 h-1 rounded-sm" style={{ backgroundColor: theme.colors.surface[900] }} />
+                        </div>
+                        <p className="text-[10px] font-medium text-surface-300 leading-tight truncate">{theme.name}</p>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}

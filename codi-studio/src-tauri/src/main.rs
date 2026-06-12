@@ -164,6 +164,22 @@ async fn list_directory(path: String) -> Result<Vec<FileEntry>, String> {
     Ok(files)
 }
 
+#[tauri::command]
+fn delete_file(path: String) -> Result<(), String> {
+    let p = std::path::Path::new(&path);
+    if p.is_dir() {
+        std::fs::remove_dir_all(p).map_err(|e| format!("Error al borrar carpeta: {}", e))
+    } else {
+        std::fs::remove_file(p).map_err(|e| format!("Error al borrar archivo: {}", e))
+    }
+}
+
+#[tauri::command]
+fn rename_file(old_path: String, new_path: String) -> Result<(), String> {
+    std::fs::rename(&old_path, &new_path)
+        .map_err(|e| format!("Error al renombrar: {}", e))
+}
+
 #[derive(Serialize)]
 struct FileEntry {
     name: String,
@@ -194,6 +210,8 @@ fn main() {
             read_file,
             write_file,
             list_directory,
+            delete_file,
+            rename_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running CODI Studio");
