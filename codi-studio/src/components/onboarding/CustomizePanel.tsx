@@ -78,25 +78,25 @@ export function CustomizePanel({ onComplete }: Props) {
   ];
 
   return (
-    <div className="h-screen flex flex-col items-center justify-center bg-white px-8">
+    <div className="h-screen flex flex-col items-center justify-center bg-surface-950 px-8 transition-colors duration-500">
       <div className="w-full max-w-[680px]">
         <div className="text-center mb-8">
           <div className="w-12 h-12 mx-auto mb-4 flex items-center justify-center">
             <img src="/codi-logo.svg" alt="Codi" className="w-10 h-10" />
           </div>
-          <h2 className="text-xl font-semibold text-[#1a1a1a] tracking-tight mb-1">Personalizar Codi</h2>
-          <p className="text-sm text-[#737373]">Elige un tema y tus preferencias</p>
+          <h2 className="text-xl font-semibold text-surface-800 tracking-tight mb-1">Personalizar Codi</h2>
+          <p className="text-sm text-surface-500">Elige un tema y tus preferencias</p>
         </div>
 
-        <div className="flex justify-center gap-1 mb-6 bg-[#f5f5f5] rounded-lg p-0.5">
+        <div className="flex justify-center gap-1 mb-6 bg-surface-100 rounded-lg p-0.5 transition-colors duration-300">
           {tabs.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
                 tab === t.id
-                  ? "bg-white text-[#1a1a1a] shadow-sm"
-                  : "text-[#737373] hover:text-[#1a1a1a]"
+                  ? "bg-surface-950 text-surface-800 shadow-sm"
+                  : "text-surface-500 hover:text-surface-800"
               }`}
             >
               {t.label}
@@ -113,15 +113,15 @@ export function CustomizePanel({ onComplete }: Props) {
                 key={theme.id}
                 onClick={() => handleSelect(theme.id)}
                 className={`relative p-2 rounded-xl border-2 transition-all text-left group ${
-                  isActive ? "border-[#f09000] ring-2 ring-[#f09000]/20" : "border-[#e5e5e5] hover:border-[#d4d4d4]"
+                  isActive ? "border-codi-500 ring-2 ring-codi-500/20" : "border-surface-200 hover:border-surface-400"
                 }`}
               >
                 {isActive && (
-                  <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[#f09000] flex items-center justify-center">
+                  <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-codi-500 flex items-center justify-center">
                     <Check size={10} className="text-white" />
                   </div>
                 )}
-                <div className="rounded-md overflow-hidden border border-[#e5e5e5] mb-2">
+                <div className="rounded-md overflow-hidden border border-surface-200 mb-2">
                   <div className="h-3" style={{ backgroundColor: c.editor.bg }} />
                   <div className="px-1.5 py-1" style={{ backgroundColor: c.editor.bg }}>
                     <div className="h-1 rounded-sm mb-0.5 w-3/4" style={{ backgroundColor: c.syntax.keyword }} />
@@ -130,35 +130,35 @@ export function CustomizePanel({ onComplete }: Props) {
                   </div>
                   <div className="h-2" style={{ backgroundColor: c.statusBar.bg }} />
                 </div>
-                <p className="text-[11px] font-medium text-[#1a1a1a] leading-tight truncate">{theme.name}</p>
+                <p className="text-[11px] font-medium text-surface-800 leading-tight truncate">{theme.name}</p>
               </button>
             );
           })}
         </div>
 
         <div className="space-y-2 mb-6">
-          <button onClick={handleInstallCommand} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-[#e5e5e5] text-left hover:bg-[#f5f5f5] transition-colors">
-            <Monitor size={18} className="text-[#a3a3a3]" />
+          <button onClick={handleInstallCommand} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-surface-200 text-left hover:bg-surface-100 transition-colors">
+            <Monitor size={18} className="text-surface-400" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-[#1a1a1a]">Instalar comando en terminal</p>
-              <code className="text-xs text-[#a3a3a3]">codi</code>
+              <p className="text-sm font-medium text-surface-800">Instalar comando en terminal</p>
+              <code className="text-xs text-surface-500">codi</code>
             </div>
             {installStatus ? (
-              <span className="text-xs text-emerald-600 font-medium">{installStatus}</span>
+              <span className="text-xs text-emerald-500 font-medium">{installStatus}</span>
             ) : (
-              <span className="text-xs text-[#f09000] hover:underline font-medium">Instalar</span>
+              <span className="text-xs text-codi-500 hover:underline font-medium">Instalar</span>
             )}
           </button>
-          <button onClick={handleImportSettings} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-[#e5e5e5] text-left hover:bg-[#f5f5f5] transition-colors">
-            <Monitor size={18} className="text-[#a3a3a3]" />
+          <button onClick={handleImportSettings} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-surface-200 text-left hover:bg-surface-100 transition-colors">
+            <Monitor size={18} className="text-surface-400" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-[#1a1a1a]">Importar configuracion</p>
-              <p className="text-xs text-[#a3a3a3]">Desde VS Code o Cursor</p>
+              <p className="text-sm font-medium text-surface-800">Importar configuracion</p>
+              <p className="text-xs text-surface-500">Desde VS Code o Cursor</p>
             </div>
             {importStatus ? (
-              <span className="text-xs text-emerald-600 font-medium">{importStatus}</span>
+              <span className="text-xs text-emerald-500 font-medium">{importStatus}</span>
             ) : (
-              <span className="text-xs text-[#f09000] hover:underline font-medium">Importar</span>
+              <span className="text-xs text-codi-500 hover:underline font-medium">Importar</span>
             )}
           </button>
         </div>
@@ -166,7 +166,7 @@ export function CustomizePanel({ onComplete }: Props) {
         <motion.button
           whileTap={{ scale: 0.97 }}
           onClick={handleOpen}
-          className="w-full py-3 rounded-xl bg-[#f09000] hover:bg-[#d47800] text-white font-semibold text-sm transition-colors"
+          className="w-full py-3 rounded-xl bg-codi-500 hover:bg-codi-600 text-white font-semibold text-sm transition-colors"
         >
           Abrir Codi
         </motion.button>
