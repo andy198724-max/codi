@@ -119,7 +119,9 @@ export function MenuBar() {
         ))}
       </div>
       <div className="flex-1 drag-region" />
-      <span className="text-xxs text-surface-600 no-drag">Codi v3.0</span>
+      <span className="text-xxs text-surface-600 no-drag flex items-center gap-1">
+        <img src="/codi-logo.svg" alt="" className="w-3.5 h-3.5" /> Codi
+      </span>
     </div>
   );
 }

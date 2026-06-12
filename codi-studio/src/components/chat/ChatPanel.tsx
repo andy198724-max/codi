@@ -37,10 +37,10 @@ export function ChatPanel() {
     return (
       <div className="panel h-full">
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-codi-500/10 flex items-center justify-center mb-5 ring-1 ring-codi-500/20">
-            <span className="text-3xl font-bold text-codi-400">C</span>
+          <div className="flex items-center gap-3 mb-5">
+            <img src="/codi-logo.svg" alt="Codi" className="w-12 h-12" />
+            <h2 className="text-2xl font-bold text-surface-100 tracking-tight">Codi</h2>
           </div>
-          <h2 className="text-lg font-semibold text-surface-100 mb-1.5">Codi</h2>
           <p className="text-sm text-surface-500 mb-8 max-w-xs leading-relaxed">
             Asistente de IA para programacion. Escribe, sube imagenes o activa el modo agente.
           </p>

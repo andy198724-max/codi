@@ -22,7 +22,8 @@ type View = "chat" | "editor" | "split";
 type AppPhase = "splash" | "customize" | "main";
 
 export default function App() {
-  const [phase, setPhase] = useState<AppPhase>("splash");
+  const done = localStorage.getItem("codi_onboarding_completed");
+  const [phase, setPhase] = useState<AppPhase>(done === "true" ? "main" : "splash");
   const [view, setView] = useState<View>("split");
   const [showExplorer, setShowExplorer] = useState(true);
   const [showSettings, setShowSettings] = useState(false);

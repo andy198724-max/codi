@@ -13,6 +13,45 @@ type Tab = "light" | "dark" | "other";
 export function CustomizePanel({ onComplete }: Props) {
   const [tab, setTab] = useState<Tab>("light");
   const [selected, setSelected] = useState("codi-light");
+  const [importStatus, setImportStatus] = useState<string | null>(null);
+  const [installStatus, setInstallStatus] = useState<string | null>(null);
+
+  const handleImportSettings = async () => {
+    try {
+      const { open } = await import("@tauri-apps/plugin-dialog");
+      const selected = await open({ directory: true, title: "Selecciona carpeta .vscode o .cursor" });
+      if (!selected) return;
+      const { invoke } = await import("@tauri-apps/api/core");
+      const content = await invoke<string>("read_file", { path: `${selected}/settings.json` }).catch(() => null);
+      if (content) {
+        const settings = JSON.parse(content);
+        localStorage.setItem("codi_imported_settings", JSON.stringify(settings));
+        if (settings["editor.fontSize"]) {
+          localStorage.setItem("codi_editor_fontSize", String(settings["editor.fontSize"]));
+        }
+        setImportStatus("Configuracion importada correctamente");
+        setTimeout(() => setImportStatus(null), 3000);
+      } else {
+        setImportStatus("No se encontro settings.json en esa carpeta");
+        setTimeout(() => setImportStatus(null), 3000);
+      }
+    } catch (e: any) {
+      setImportStatus(`Error: ${e}`);
+      setTimeout(() => setImportStatus(null), 3000);
+    }
+  };
+
+  const handleInstallCommand = async () => {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("install_terminal_command");
+      setInstallStatus("Comando 'codi' instalado. Abre una terminal nueva.");
+      setTimeout(() => setInstallStatus(null), 4000);
+    } catch (e: any) {
+      setInstallStatus("Instalacion no disponible en esta version");
+      setTimeout(() => setInstallStatus(null), 4000);
+    }
+  };
 
   const lightThemes = themeRegistry.filter((t) => t.type === "light");
   const darkThemes = themeRegistry.filter((t) => t.type === "dark");
@@ -97,21 +136,29 @@ export function CustomizePanel({ onComplete }: Props) {
         </div>
 
         <div className="space-y-2 mb-6">
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-[#e5e5e5] text-left hover:bg-[#f5f5f5] transition-colors">
+          <button onClick={handleInstallCommand} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-[#e5e5e5] text-left hover:bg-[#f5f5f5] transition-colors">
             <Monitor size={18} className="text-[#a3a3a3]" />
-            <div>
+            <div className="flex-1">
               <p className="text-sm font-medium text-[#1a1a1a]">Instalar comando en terminal</p>
               <code className="text-xs text-[#a3a3a3]">codi</code>
             </div>
-            <span className="ml-auto text-xs text-[#f09000] bg-[#fff8eb] px-2 py-0.5 rounded font-medium">Proximamente</span>
+            {installStatus ? (
+              <span className="text-xs text-emerald-600 font-medium">{installStatus}</span>
+            ) : (
+              <span className="text-xs text-[#f09000] hover:underline font-medium">Instalar</span>
+            )}
           </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-[#e5e5e5] text-left hover:bg-[#f5f5f5] transition-colors">
+          <button onClick={handleImportSettings} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-[#e5e5e5] text-left hover:bg-[#f5f5f5] transition-colors">
             <Monitor size={18} className="text-[#a3a3a3]" />
-            <div>
+            <div className="flex-1">
               <p className="text-sm font-medium text-[#1a1a1a]">Importar configuracion</p>
               <p className="text-xs text-[#a3a3a3]">Desde VS Code o Cursor</p>
             </div>
-            <span className="ml-auto text-xs text-[#f09000] bg-[#fff8eb] px-2 py-0.5 rounded font-medium">Proximamente</span>
+            {importStatus ? (
+              <span className="text-xs text-emerald-600 font-medium">{importStatus}</span>
+            ) : (
+              <span className="text-xs text-[#f09000] hover:underline font-medium">Importar</span>
+            )}
           </button>
         </div>
 

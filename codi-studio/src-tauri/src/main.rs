@@ -181,6 +181,61 @@ fn rename_file(old_path: String, new_path: String) -> Result<(), String> {
 }
 
 #[derive(Serialize)]
+struct GitFileStatus {
+    path: String,
+    status: String,
+}
+
+#[tauri::command]
+fn git_status(repo_path: String) -> Result<Vec<GitFileStatus>, String> {
+    let output = std::process::Command::new("git")
+        .args(["status", "--porcelain"])
+        .current_dir(&repo_path)
+        .output()
+        .map_err(|e| format!("Error ejecutando git: {}", e))?;
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let files: Vec<GitFileStatus> = stdout.lines().filter_map(|line| {
+        if line.len() >= 3 {
+            Some(GitFileStatus {
+                status: line[..2].trim().to_string(),
+                path: line[3..].to_string(),
+            })
+        } else { None }
+    }).collect();
+    Ok(files)
+}
+
+#[tauri::command]
+fn git_branch(repo_path: String) -> Result<String, String> {
+    let output = std::process::Command::new("git")
+        .args(["branch", "--show-current"])
+        .current_dir(&repo_path)
+        .output()
+        .map_err(|e| format!("Error: {}", e))?;
+    Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+}
+
+#[tauri::command]
+fn git_commit(repo_path: String, message: String) -> Result<String, String> {
+    let output = std::process::Command::new("git")
+        .args(["commit", "-m", &message])
+        .current_dir(&repo_path)
+        .output()
+        .map_err(|e| format!("Error: {}", e))?;
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    if !output.status.success() { Err(format!("{}{}", stdout, stderr)) }
+    else { Ok(stdout.to_string() + stderr) }
+}
+
+#[tauri::command]
+fn install_terminal_command() -> Result<String, String> {
+    let exe_path = std::env::current_exe().map_err(|e| format!("Error: {}", e))?;
+    let path_str = exe_path.to_string_lossy().to_string();
+    Ok(format!("Codi executable at: {}. Run `{}` from terminal to open.", path_str, path_str))
+}
+
+#[derive(Serialize)]
 struct FileEntry {
     name: String,
     path: String,
@@ -212,6 +267,10 @@ fn main() {
             list_directory,
             delete_file,
             rename_file,
+            git_status,
+            git_branch,
+            git_commit,
+            install_terminal_command,
         ])
         .run(tauri::generate_context!())
         .expect("error while running CODI Studio");

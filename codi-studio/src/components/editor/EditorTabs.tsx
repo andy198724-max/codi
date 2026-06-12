@@ -1,31 +1,57 @@
-import { useProjectStore } from "@/stores/project";
+import { useState, useCallback } from "react";
 import { X, Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface EditorTabsProps {
-  openTabs: { path: string; isDirty: boolean }[];
-  activePath: string | null;
+  openTabs: { path: string; isDirty: boolean; isActive: boolean }[];
   onSelectTab: (path: string) => void;
   onCloseTab: (path: string) => void;
+  onReorder: (fromIndex: number, toIndex: number) => void;
 }
 
-export function EditorTabs({ openTabs, activePath, onSelectTab, onCloseTab }: EditorTabsProps) {
-  if (openTabs.length <= 1) return null;
+export function EditorTabs({ openTabs, onSelectTab, onCloseTab, onReorder }: EditorTabsProps) {
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDragIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", String(index));
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (e: React.DragEvent, toIndex: number) => {
+    e.preventDefault();
+    if (dragIndex !== null && dragIndex !== toIndex) {
+      onReorder(dragIndex, toIndex);
+    }
+    setDragIndex(null);
+  };
+
+  if (openTabs.length === 0) return null;
 
   return (
     <div className="flex items-center bg-surface-925 border-b border-surface-850 overflow-x-auto shrink-0">
-      {openTabs.map((tab) => {
+      {openTabs.map((tab, i) => {
         const name = tab.path.split("\\").pop() || tab.path;
-        const isActive = tab.path === activePath;
         return (
-          <button
+          <div
             key={tab.path}
+            draggable
+            onDragStart={(e) => handleDragStart(e, i)}
+            onDragOver={(e) => handleDragOver(e, i)}
+            onDrop={(e) => handleDrop(e, i)}
+            onDragEnd={() => setDragIndex(null)}
             onClick={() => onSelectTab(tab.path)}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 text-xs border-r border-surface-850 transition-colors shrink-0 max-w-[180px] group",
-              isActive
+              "flex items-center gap-1.5 px-3 py-1.5 text-xs border-r border-surface-850 transition-colors shrink-0 max-w-[180px] cursor-pointer group select-none",
+              tab.isActive
                 ? "bg-surface-900 text-surface-200 border-t-2 border-t-codi-500"
-                : "text-surface-500 hover:bg-surface-900/50"
+                : "text-surface-500 hover:bg-surface-900/50",
+              dragIndex === i && "opacity-50"
             )}
           >
             <span className="truncate flex-1">{name}</span>
@@ -36,7 +62,7 @@ export function EditorTabs({ openTabs, activePath, onSelectTab, onCloseTab }: Ed
             >
               <X size={10} />
             </span>
-          </button>
+          </div>
         );
       })}
     </div>

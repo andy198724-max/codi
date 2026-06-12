@@ -18,10 +18,10 @@ export function WelcomePage({ onOpenProject, onCreateProject }: Props) {
       <div className="max-w-2xl w-full">
         {/* Logo */}
         <div className="text-center mb-10">
-          <div className="w-16 h-16 rounded-2xl bg-codi-500/10 flex items-center justify-center mx-auto mb-4 ring-1 ring-codi-500/20">
-            <span className="text-3xl font-bold text-codi-400">C</span>
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <img src="/codi-logo.svg" alt="Codi" className="w-12 h-12" />
+            <h1 className="text-2xl font-bold text-surface-100 tracking-tight">Codi</h1>
           </div>
-          <h1 className="text-xl font-semibold text-surface-100 mb-1">Codi</h1>
           <p className="text-sm text-surface-500">Asistente de IA para programacion</p>
         </div>
 

@@ -28,12 +28,8 @@ export function Sidebar() {
       {/* Header */}
       <div className="p-4 border-b border-surface-200 dark:border-surface-800">
         <div className="flex items-center gap-2 mb-3">
-          <div className="w-8 h-8 rounded-lg bg-codi-600 flex items-center justify-center">
-            <Bot size={18} className="text-white" />
-          </div>
-          <span className="font-semibold text-lg text-surface-900 dark:text-surface-100">
-            CODI
-          </span>
+          <img src="/codi-logo.svg" alt="Codi" className="w-8 h-8" />
+          <span className="font-semibold text-lg text-surface-900 dark:text-surface-100">Codi</span>
         </div>
 
         <button
