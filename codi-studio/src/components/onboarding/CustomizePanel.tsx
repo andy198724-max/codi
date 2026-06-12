@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Check, Monitor } from "lucide-react";
 import { themeRegistry } from "@/themes/registry";
-import { applyTheme } from "@/themes/engine";
+import { applyTheme, setCurrentThemeId } from "@/themes/engine";
 
 interface Props {
   onComplete: () => void;
@@ -15,6 +15,11 @@ export function CustomizePanel({ onComplete }: Props) {
   const [selected, setSelected] = useState("codi-light");
   const [importStatus, setImportStatus] = useState<string | null>(null);
   const [installStatus, setInstallStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    const t = themeRegistry.find((th) => th.id === selected);
+    if (t) { applyTheme(t); setCurrentThemeId(t.id); }
+  }, [selected]);
 
   const handleImportSettings = async () => {
     try {
@@ -59,11 +64,7 @@ export function CustomizePanel({ onComplete }: Props) {
 
   const currentThemes = tab === "light" ? lightThemes : tab === "dark" ? darkThemes : otherThemes;
 
-  const handleSelect = (id: string) => {
-    setSelected(id);
-    const t = themeRegistry.find((th) => th.id === id);
-    if (t) applyTheme(t);
-  };
+  const handleSelect = (id: string) => { setSelected(id); };
 
   const handleOpen = () => {
     localStorage.setItem("codi_onboarding_completed", "true");
