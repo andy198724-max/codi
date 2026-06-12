@@ -21,10 +21,7 @@ type View = "chat" | "editor" | "split";
 type AppPhase = "splash" | "onboarding" | "main";
 
 export default function App() {
-  const onboardingDone = localStorage.getItem("codi_onboarding_completed");
-  const [phase, setPhase] = useState<AppPhase>(
-    onboardingDone === "true" ? "main" : "splash"
-  );
+  const [phase, setPhase] = useState<AppPhase>("splash");
   const [view, setView] = useState<View>("split");
   const [showExplorer, setShowExplorer] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
@@ -74,7 +71,10 @@ export default function App() {
   }, []);
 
   if (phase === "splash") {
-    return <SplashScreen onComplete={() => setPhase("onboarding")} />;
+    return <SplashScreen onComplete={() => {
+      const done = localStorage.getItem("codi_onboarding_completed");
+      setPhase(done === "true" ? "main" : "onboarding");
+    }} />;
   }
 
   if (phase === "onboarding") {

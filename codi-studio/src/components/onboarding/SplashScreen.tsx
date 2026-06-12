@@ -13,12 +13,12 @@ export function SplashScreen({ onComplete }: Props) {
       setProgress((p) => {
         if (p >= 100) {
           clearInterval(interval);
-          setTimeout(onComplete, 400);
+          setTimeout(onComplete, 600);
           return 100;
         }
-        return Math.min(p + 15 + Math.random() * 20, 100);
+        return Math.min(p + 3 + Math.random() * 8, 100);
       });
-    }, 300);
+    }, 180);
     return () => clearInterval(interval);
   }, [onComplete]);
 
