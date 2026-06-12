@@ -14,6 +14,7 @@ import {
   Download,
   Maximize2,
   Minimize2,
+  Map,
 } from "lucide-react";
 
 export function EditorPanel() {
@@ -22,7 +23,7 @@ export function EditorPanel() {
   const isDirty = useProjectStore((s) => s.isDirty);
   const saveFile = useProjectStore((s) => s.saveFile);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [theme, setTheme] = useState<"vs-dark" | "vs">("vs-dark");
+  const [showMinimap, setShowMinimap] = useState(false);
   const [currentContent, setCurrentContent] = useState<string>("");
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
@@ -97,6 +98,9 @@ export function EditorPanel() {
         <button onClick={handleSave} className="btn-ghost p-1" title="Guardar">
           <Save size={13} />
         </button>
+        <button onClick={() => setShowMinimap(v => !v)} className="btn-ghost p-1" title="Minimap">
+          <Map size={13} />
+        </button>
         <button onClick={() => setIsFullscreen(!isFullscreen)} className="btn-ghost p-1" title="Pantalla completa">
           {isFullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
         </button>
@@ -115,7 +119,7 @@ export function EditorPanel() {
             fontSize: 14,
             fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
             fontLigatures: true,
-            minimap: { enabled: false },
+            minimap: { enabled: showMinimap },
             scrollBeyondLastLine: false,
             lineNumbers: "on",
             renderWhitespace: "selection",

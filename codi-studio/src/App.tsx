@@ -16,6 +16,7 @@ import { WelcomePage } from "@/components/WelcomePage";
 import { CommandPalette, defaultCommands } from "@/components/CommandPalette";
 import { BottomPanel } from "@/components/BottomPanel";
 import { ActivityBar } from "@/components/ActivityBar";
+import { QuickOpen } from "@/components/QuickOpen";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 type View = "chat" | "editor" | "split";
@@ -31,6 +32,7 @@ export default function App() {
   const [showTimeline, setShowTimeline] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showBottomPanel, setShowBottomPanel] = useState(false);
+  const [showQuickOpen, setShowQuickOpen] = useState(false);
 
   const mode = useChatStore((s) => {
     const conv = s.conversations.find((c) => c.id === s.activeConversationId);
@@ -53,6 +55,7 @@ export default function App() {
       if (mod && e.key === "l") { e.preventDefault(); newConversation(); }
       if (mod && e.key === ",") { e.preventDefault(); setShowSettings(true); }
       if (mod && e.key === "b") { e.preventDefault(); setShowExplorer((v) => !v); }
+      if (mod && e.key === "p") { e.preventDefault(); setShowQuickOpen((v) => !v); }
       if (mod && e.shiftKey && e.key === "P") { e.preventDefault(); setShowCommandPalette((v) => !v); }
       if (e.key === "Escape") { setShowCommandPalette(false); }
     };
@@ -133,7 +136,8 @@ export default function App() {
                         <PanelResizeHandle className="h-px bg-surface-850 hover:bg-codi-500/50 transition-colors cursor-row-resize" />
                         <div className="h-48">
                           <AgentTimeline onClose={() => setShowTimeline(false)} />
-                        </div>
+      <QuickOpen isOpen={showQuickOpen} onClose={() => setShowQuickOpen(false)} />
+    </div>
                       </>
                     )}
                   </div>
@@ -157,6 +161,7 @@ export default function App() {
         onToggleTimeline={() => setShowTimeline((v) => !v)}
         showBottomPanel={showBottomPanel}
         onToggleBottomPanel={() => setShowBottomPanel((v) => !v)}
+        onOpenSettings={() => setShowSettings(true)}
       />
         </div>
       )}
