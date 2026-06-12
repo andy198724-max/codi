@@ -15,6 +15,7 @@ import { getThemeById } from "@/themes/registry";
 import { WelcomePage } from "@/components/WelcomePage";
 import { CommandPalette, defaultCommands } from "@/components/CommandPalette";
 import { BottomPanel } from "@/components/BottomPanel";
+import { ActivityBar } from "@/components/ActivityBar";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 type View = "chat" | "editor" | "split";
@@ -42,7 +43,7 @@ export default function App() {
 
   useEffect(() => {
     const themeId = getCurrentThemeId();
-    const theme = getThemeById(themeId || "codi-light");
+    const theme = getThemeById(themeId || "windsurf-dark");
     applyTheme(theme);
   }, []);
 
@@ -88,16 +89,20 @@ export default function App() {
     <div className="h-screen flex flex-col overflow-hidden bg-surface-950" onDrop={handleDrop} onDragOver={(e) => e.preventDefault()}>
       <MenuBar />
       {!rootPath && !activeConversationId ? (
-        <WelcomePage
-          onOpenProject={async () => {
-            const { open } = await import("@tauri-apps/plugin-dialog");
-            const selected = await open({ directory: true });
-            if (selected) await openProject(selected);
-          }}
-          onCreateProject={() => newConversation()}
-        />
+        <div className="flex-1 flex">
+          <ActivityBar activeView="explorer" onViewChange={(v) => { if (v === "settings") setShowSettings(true); }} />
+          <WelcomePage
+            onOpenProject={async () => {
+              const { open } = await import("@tauri-apps/plugin-dialog");
+              const selected = await open({ directory: true });
+              if (selected) await openProject(selected);
+            }}
+            onCreateProject={() => newConversation()}
+          />
+        </div>
       ) : (
-        <>
+        <div className="flex-1 flex overflow-hidden">
+          <ActivityBar activeView="explorer" onViewChange={(v) => { if (v === "explorer") setShowExplorer(v => !v); if (v === "settings") setShowSettings(true); }} />
           <PanelGroup direction="horizontal" className="flex-1">
 
         {showExplorer && (
@@ -148,13 +153,12 @@ export default function App() {
         onViewChange={setView}
         showExplorer={showExplorer}
         onToggleExplorer={() => setShowExplorer((v) => !v)}
-        onOpenSettings={() => setShowSettings(true)}
         showTimeline={showTimeline}
         onToggleTimeline={() => setShowTimeline((v) => !v)}
         showBottomPanel={showBottomPanel}
         onToggleBottomPanel={() => setShowBottomPanel((v) => !v)}
       />
-        </>
+        </div>
       )}
 
       {showSettings && (

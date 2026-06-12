@@ -57,7 +57,8 @@ const ACCENT_AMBER = { 50: "#fffbeb", 100: "#fef3c7", 200: "#fde68a", 300: "#fcd
 const ACCENT_INDIGO = { 50: "#eef2ff", 100: "#e0e7ff", 200: "#c7d2fe", 300: "#a5b4fc", 400: "#818cf8", 500: "#6366f1", 600: "#4f46e5", 700: "#4338ca", 800: "#3730a3", 900: "#312e81", 950: "#1e1b4b" };
 
 export const themeRegistry: ThemeDefinition[] = [
-  { id: "codi-dark", name: "CODI Dark", type: "dark", colors: dark("#1a1b1e", "#e0e0e0", ACCENT_CODI) },
+  { id: "windsurf-dark", name: "Windsurf Dark", type: "dark", colors: dark("#0c0c0d", "#e0e0e0", ACCENT_BLUE) },
+  { id: "codi-dark", name: "CODI Dark", type: "dark", colors: dark("#0c0c0d", "#e0e0e0", ACCENT_CODI) },
   { id: "codi-amber", name: "CODI Amber", type: "dark", colors: dark("#1a1b1e", "#e0e0e0", ACCENT_AMBER) },
   { id: "codi-ocean", name: "CODI Ocean", type: "dark", colors: dark("#0f172a", "#e2e8f0", ACCENT_CYAN) },
   { id: "codi-midnight", name: "CODI Midnight", type: "dark", colors: dark("#09090b", "#d4d4d8", ACCENT_INDIGO) },

@@ -12,7 +12,7 @@ type Tab = "light" | "dark" | "other";
 
 export function CustomizePanel({ onComplete }: Props) {
   const [tab, setTab] = useState<Tab>("light");
-  const [selected, setSelected] = useState("codi-light");
+  const [selected, setSelected] = useState("windsurf-dark");
   const [importStatus, setImportStatus] = useState<string | null>(null);
   const [installStatus, setInstallStatus] = useState<string | null>(null);
 
