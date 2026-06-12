@@ -7,11 +7,22 @@ import { FileExplorer } from "@/components/explorer/FileExplorer";
 import { StatusBar } from "@/components/StatusBar";
 import { SettingsDialog } from "@/components/settings/SettingsDialog";
 import { AgentTimeline } from "@/components/agent/AgentTimeline";
+import { SplashScreen } from "@/components/onboarding/SplashScreen";
+import { Onboarding } from "@/components/onboarding/Onboarding";
+import { MenuBar } from "@/components/MenuBar";
+import { applyTheme } from "@/lib/themes";
+import { WelcomePage } from "@/components/WelcomePage";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 type View = "chat" | "editor" | "split";
 
+type AppPhase = "splash" | "onboarding" | "main";
+
 export default function App() {
+  const onboardingDone = localStorage.getItem("codi_onboarding_completed");
+  const [phase, setPhase] = useState<AppPhase>(
+    onboardingDone === "true" ? "main" : "splash"
+  );
   const [view, setView] = useState<View>("split");
   const [showExplorer, setShowExplorer] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
@@ -22,11 +33,15 @@ export default function App() {
     return conv?.mode || "chat";
   });
   const newConversation = useChatStore((s) => s.newConversation);
+  const activeConversationId = useChatStore((s) => s.activeConversationId);
   const openProject = useProjectStore((s) => s.openProject);
+  const rootPath = useProjectStore((s) => s.rootPath);
 
   useEffect(() => {
     const root = document.documentElement;
     root.classList.add("dark");
+    const savedTheme = localStorage.getItem("codi_theme") || "codi-dark";
+    applyTheme(savedTheme);
   }, []);
 
   useEffect(() => {
@@ -54,9 +69,36 @@ export default function App() {
     }
   }, []);
 
+  if (phase === "splash") {
+    return <SplashScreen onComplete={() => setPhase("onboarding")} />;
+  }
+
+  if (phase === "onboarding") {
+    return (
+      <Onboarding
+        onComplete={() => {
+          setPhase("main");
+          window.location.reload();
+        }}
+      />
+    );
+  }
+
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-surface-950" onDrop={handleDrop} onDragOver={(e) => e.preventDefault()}>
-      <PanelGroup direction="horizontal" className="flex-1">
+      <MenuBar />
+      {!rootPath && !activeConversationId ? (
+        <WelcomePage
+          onOpenProject={async () => {
+            const { open } = await import("@tauri-apps/plugin-dialog");
+            const selected = await open({ directory: true });
+            if (selected) await openProject(selected);
+          }}
+          onCreateProject={() => newConversation()}
+        />
+      ) : (
+        <>
+          <PanelGroup direction="horizontal" className="flex-1">
 
         {showExplorer && (
           <>
@@ -106,6 +148,8 @@ export default function App() {
         showTimeline={showTimeline}
         onToggleTimeline={() => setShowTimeline((v) => !v)}
       />
+        </>
+      )}
 
       {showSettings && (
         <SettingsDialog onClose={() => setShowSettings(false)} />
